@@ -1,0 +1,6 @@
+{
+  "manifest_bytes_unchanged": true,
+  "message": "possible secret value found",
+  "status": "REPRODUCED_OFFLINE",
+  "type": "V2ValidationError"
+}

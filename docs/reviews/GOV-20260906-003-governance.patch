@@ -1,0 +1,106 @@
+--- before/docs/project_registry.json
++++ after/docs/project_registry.json
+@@ -1,11 +1,11 @@
+ {
+   "schema_version": "stock-project-registry-v1",
+   "policy_version": "stock-governance-v1.0.0",
+-  "decision_id": "GOV-20260906-002",
++  "decision_id": "GOV-20260906-003",
+   "governance_root": "/Users/chenyipeng/Desktop/Codex/Stock",
+   "authority": "/Users/chenyipeng/Desktop/Codex/Stock/AGENTS.md",
+   "registry_scope": "Structural boundaries, canonical roots, action ceilings, write roots and validation entrypoints. This registry does not grant production permission or replace project-local manifests, receipts, ledgers, pointers or live configuration.",
+-  "as_of": "2026-09-06T10:53:48+08:00",
++  "as_of": "2026-09-06T11:26:00+08:00",
+   "path_resolution": {
+     "strategy": "longest_registered_path_prefix_wins",
+     "archive_ancestor_overrides_nested_metadata": true,
+@@ -526,7 +526,7 @@
+         "以 SW2021:L3:230501 为稳定业务身份，分别保存并验证特钢三级的目录、官方行情与成员端点代码"
+       ],
+       "role": "STANDALONE_RESEARCH_UTILITY",
+-      "lifecycle_status": "ACTIVE_RESEARCH_ONLY_V4_3_REAL_FETCH_PASS_UPDATE_BLOCKED_SOURCE_REPORT_SECRET_SCAN",
++      "lifecycle_status": "ACTIVE_RESEARCH_ONLY_V4_3_SOURCE_PACKAGING_FIXED_ISOLATED_LIVE_ACCEPTANCE_PASS",
+       "paths": [
+         {
+           "path": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+@@ -561,7 +561,7 @@
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+         "/Users/chenyipeng/Library/Application Support/swivd"
+       ],
+-      "validation_status": "V4_3_REAL_FETCH_PASS_UPDATE_VALIDATION_BLOCKED_HISTORICAL_AND_REBUILD_NOT_RUN_WINDOWS_E2E_UNVERIFIED",
++      "validation_status": "V4_3_OFFLINE_SUITE_LIVE_UPDATE_HISTORY_OFFLINE_REBUILD_MIGRATION_PASS_NO_FORMAL_PUBLICATION_WINDOWS_E2E_UNVERIFIED",
+       "formal_pipeline_role": "INDEPENDENT_RESEARCH_ONLY_NO_INTEGRATION",
+       "production_allowed": false,
+       "state_sources": [
+@@ -585,7 +585,9 @@
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001-CHROME.md",
+         "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-FINAL_CLOSED",
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-002.md",
+-        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-002-FAILED_CLOSED"
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-002-FAILED_CLOSED",
++        "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-003.md",
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-003-FINAL_CLOSED"
+       ],
+       "validation": [
+         {
+--- before/docs/governance_decisions.md
++++ after/docs/governance_decisions.md
+@@ -2798,3 +2798,58 @@
+ 登记after SHA `2dde3ee0ccdbe1e8aed89af987ff3ed23ddfe70be1deb9b1f50131f769f53e1d`。
+ 登记仅更新本项目验收状态及顶层时间/决策，统一diff为同前缀 `-registry.patch`。
+ 本记录追加前日志SHA `acadbc7b7b61dedae89e8f933c7dad84d3d94b50d30d252942911fe46d9d59b6`。
++
++## GOV-20260906-003-AUTHORIZED｜源码文档打包修复与隔离重验
++
++- 批准时间：2026-09-06（Asia/Shanghai）；用户针对上一轮最小修复与重跑提议明确答复：`同意`。
++- 上轮定位：历史review假凭据示例被递归打入源码，秘密扫描正确拒绝候选；实际Token扫描零命中。
++- 准确修改：`sw_industry_valuation_dashboard/src/swivd/v2_pipeline.py` 的 `_copy_source_snapshot`
++  仅保留现有四份运行/维护文档，停止递归收录review；新增 `tests/test_v23_source_snapshot.py`。
++  独立验证器已有同一四份必要文档门禁与全量秘密扫描，无需改其语义。
++- 合同、规格、数据schema、公式、成员规则、Token来源和安全扫描不变；新产物仍使用当前v4.3，
++  manifest源文件哈希绑定修复字节；本决策授权修复，不复用已关闭的GOV-20260906-001/002。
++- 项目非Git；修改前pipeline SHA `20bba1ad4b14dd02eb0ea83af50145c25531c9e3054932f5ceb7201bc88c635e`。
++  备份/验证根 `/private/tmp/swivd-packaging-fix.YUp0LZ`；登记before SHA
++  `2dde3ee0ccdbe1e8aed89af987ff3ed23ddfe70be1deb9b1f50131f769f53e1d`，日志before SHA
++  `8478c551d9f5908e2714187cf941dcfc27f6a044f735f3655e1ac6615b0b77fe`。
++- 回归覆盖：旧假凭据review不入包、四份必需文档存在且字节闭合、缺失或软链接文档仍失败、
++  fake-provider新快照完整验证通过且打包产物中的凭据候选仍失败。运行已有离线套件和必要宿主补测。
++- 用户已授权的真实Token仅进内存及Tushare HTTPS请求正文，不打印、不落盘、不通过argv/URL/UI传递。
++  在新系统临时目录复制验证后的正式RUN-002及pointer，重跑真实UPDATE_LATEST、20260901
++  MATERIALIZE_DATE及禁止联网进程的独立重建、中文空格单run迁移验证；新运行只更新临时状态。
++- 旧review、旧失败run、旧manifest均保留；7项受保护集合及正式runtime全文件inventory前后核验。
++  允许新增本决策review/机器证据、追加本日志、仅更新本项目登记验收投影；不改其他项目。
++- 失败即保留证据与旧latest，不为通过而排除运行必需文件、放宽扫描或修改业务数据。
++  回滚先核对after哈希，再逐文件恢复本次pipeline备份、移除本次新增测试；登记逐字段恢复；日志仅追加撤销。
++- 禁止正式数据发布、正式latest/ledger更新、权限晋级、自动化、commit/push/Release。
++  RESEARCH_ONLY / decision_eligible=false / production_approved=false；Windows真机仍未验收。
++
++## GOV-20260906-003-FINAL_CLOSED｜打包修复及批准范围隔离验收通过
++
++- 关闭日期：2026-09-06，Asia/Shanghai；批准引用为同决策AUTHORIZED及用户针对最小修复的`同意`。
++- `execution_status=APPROVED_SCOPE_PASS`；`artifact_publish_state=SOURCE_FIX_AND_ISOLATED_CANDIDATES_ONLY`；
++  `live_validation_state=UPDATE_AND_HISTORICAL_PASS`；`decision_eligible=false / production_approved=false`。
++- 产品改动仅 `src/swivd/v2_pipeline.py` 文档清单；新增 `tests/test_v23_source_snapshot.py` 三项回归。
++  四份维护文档仍必需，历史review不再入包；未修改validator、秘密扫描、公式、合同或规格。
++- 完整宿主离线套件245/245，0错误/失败/跳过；临时runner首轮的导入路径错误保留，修正后完整重跑。
++  真实日更20260904为142请求，历史20260901为140请求，作业请求全部首次成功。
++  两个真实run均通过验证和临时发布；历史current pointer不变、两条独立RUN_SUCCEEDED记录。
++- 新run分别复制到中文空格的独立目录，禁止联网进程完整验证及重建，各516派生文件逐字节一致。
++  无publication intent残留，临时写锁可取得；3860个临时文件真实Token扫描零命中。
++- 原实现32项不变、7项保护哈希不变、正式runtime1163文件不变、RUN-004全部75产物哈希闭合。
++  旧review、旧失败run及前轮证据不变；本次未更新正式latest/ledger、未启动持续服务或浏览器。
++- 本轮没有新增真实Chrome按钮E2E，原Chrome证据保留原范围；`WINDOWS_E2E_UNVERIFIED`。
++  RESEARCH_ONLY，没有可交付的新回测结论；无其他项目、自动化、commit/push/Release或外部发布。
++- 独立Agent复核了实际diff、必要文档、脚本、成功run的manifest/ledger/pointer/source闭包及最终报告，
++  未发现实质问题。其阅读复核不替代上述程序验证。
++
++报告：`sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-003.md`，
++SHA `640e323a71b6564fdef3781be210deeda20c8e7c01c2b92ea05082b406318b26`。
++关闭检查SHA `603538b388023062dbddbd07deb5db46a478ad77f84fe4f90a403abb2974dccd`；
++代码diff SHA `67a242bcb26d55908b0b425d6adb9d6fbb84eaff67dbd0e78e19b10e3fdb1ce8`；
++pipeline after SHA `b3b0a6f8bd7a29912a16ee6318e11aa4040bb38e5f1e68cb00b4337a092cc6aa`。
++登记after SHA `83467d5b676aec1c15f9dd517756ba58fca943e8128b91ab270554c277be1f5b`；
++本记录追加前日志SHA `9b01cb6ec5432e690b3a2e0149099c78a3cc289c0b60b37d5dcb65f23381aa7c`。
++
++本次修复与隔离重验授权至此关闭，不转为正式数据发布或后续源码/合同变化授权。
++回滚使用报告中的逐文件diff、after哈希及临时before备份；登记逐字段恢复，历史日志仅追加撤销。

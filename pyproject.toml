@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "swivd"
+version = "2.3.0"
+description = "Portable research-only SW2021 industry valuation dashboard"
+requires-python = ">=3.11,<3.15"
+dependencies = [
+  "certifi==2026.6.17",
+  "tushare==1.4.29",
+  "tzdata==2026.3",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

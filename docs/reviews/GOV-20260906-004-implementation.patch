@@ -1,0 +1,2308 @@
+--- /dev/null
++++ b/portable/README-PORTABLE.md
+@@ -0,0 +1,99 @@
++# 申万行业估值仪表盘 · 便携版
++
++内置 Python 3.14.6、全部锁定依赖、原项目源码，以及截至 **2026-09-04** 的冻结数据。解压完整文件夹即可运行；联网更新只需要你自己的 Tushare Pro token，仍受该账号的接口权限、频次和数据发布时间限制。不需要安装 Python、pip、Node 或开发工具。
++
++仅供研究：`RESEARCH_ONLY / decision_eligible=false / production_approved=false`。页面的百分位不是投资建议，不能据此宣称可交易、生产可用或产生新回测结论。
++
++## 选哪个包
++
++| 文件名后缀 | 目标电脑 | 验收边界 |
++| --- | --- | --- |
++| `macos-arm64.zip` | Apple Silicon（M 系列），macOS 11 或更新 | 原生 Mac 验收结果以包旁验收报告为准；不代表每个旧系统版本实测 |
++| `macos-x86_64.zip` | Intel Mac，macOS 10.15 或更新 | 依赖与架构检查不等于 Intel 真机验收 |
++| `windows-x86_64.zip` | Windows 10/11，64 位 x64 | `WINDOWS_E2E_UNVERIFIED`，在真实 Windows 完成下述验收前不得视为最终通过 |
++
++系统下限来自运行时编译目标和依赖 wheel 标签，不承诺任意旧电脑。Windows ARM64 原生、32 位 Windows、Windows 7/8.1 不在本版范围。选择与电脑 CPU 对应的包，不要将 Mac 的 runtime 复制到 Windows。
++
++## 第一次使用
++
++1. 将 ZIP **完整解压**到自己的可写目录。不要在压缩包预览中启动，不要放在系统安装目录、云盘同步目录或只读移动盘。Windows 建议短路径，例如 `C:\SWIVD`，避免深层目录的系统路径长度限制。中文和空格路径有专项测试。
++2. Mac 双击 `Start-Mac.command`；Windows 双击 `Start-Windows.cmd`。保留打开的终端窗口。校验完整性和首次导入数据可能需要数十秒，请等待明确的服务启动提示。
++3. 若已有 `TUSHARE_TOKEN` 环境变量或本机 Tushare SDK token，自动使用；否则在终端提示后粘贴 token 并回车。**输入不显示字符，这是正常的。** Token 仅保存在此次进程内，不写配置、文件或网页，也不保存到系统；重启时需要重新输入。
++4. 暂时没有 token 可直接回车，仅浏览已带数据。页面更新没有可用 token 时会失败，不表示已有数据损坏。
++5. 看到 `SERVING` 后，自己在 Chrome 打开 **http://127.0.0.1:8765**。程序不会自动打开、切换浏览器，也不监听局域网。
++
++macOS 可能对未经公证的下载程序提示安全确认。先核对包旁的 SHA-256 和来源，再按照 [Apple 官方安全说明](https://support.apple.com/zh-cn/102445)批准具体项目。不要关闭 Gatekeeper，不要批量删除下载隔离标记。组织安全策略可能禁止运行，此时请联系管理员；本包不会绕过策略。本版本不是已签名/公证的安装器。
++
++如果解压工具丢失 Mac 执行权限，可在终端进入解压目录后运行：
++
++```sh
++chmod u+x Start-Mac.command runtime/bin/python3.14
++./Start-Mac.command
++```
++
++## 使用、更新与停止
++
++- 切换申万 L1/L2/L3、搜索行业、查看行业历史和成员估值。保留 SW2014 L1 历史档案，但不向其倒灌当前成员。
++- 每次更新由页面按钮明确触发。日期按上海时区 18:30 截止规则选择；未到时间使用上一可更新交易日并说明原因。数据不齐仍会失败，不偷偷补前值。
++- 后台更新不替换当前正在浏览的快照。成功显示新数据就绪后，由你点击切换。历史日期需要明确点击载入，不能改写当前日更指针。
++- 更新失败时保留原数据；权限不足、分类冲突、行数截断、网络中断等需依错误码排查，不要通过修改 manifest 或关闭校验绕过。
++- 退出前等待更新达到成功或失败终态，再在服务终端按 **Ctrl+C**。不要在更新途中直接拔盘或复制文件夹；意外退出后下一次正常启动会按项目既有事务机制恢复。
++- 默认端口占用时，先关闭你此前启动的同一服务。也可进入包目录运行 `./Start-Mac.command serve --port 8766`（Windows 为 `Start-Windows.cmd serve --port 8766`），再访问相应端口。不要终止电脑上全部 Python 进程。
++
++## 数据放在哪里、怎样再迁移
++
++```text
++解压目录/
++  Start-*.command 或 Start-*.cmd   本平台入口
++  launcher.py                     安全启动与校验
++  runtime/                        私有 Python（不可跨平台混用）
++  packages/                       锁定依赖和许可证
++  app/                            原字节源码、网页和完整 RUN-004 档案
++  seed-data/                      不可变的 9 月 4 日初始数据
++  data/state/                     首次启动后生成，本实例后续更新只写这里
++  package-manifest.json            静态文件的版本与 SHA-256 清单
++  runtime-manifest.json            下载来源、运行时和依赖取证
++```
++
++首次运行只会从已验证的 `seed-data` 初始化全新的 `data/state`。已有 `data/state` 会验证后继续使用，不被种子覆盖；已有无效目录会报错，不进行猜测性合并。不会读取或修改源电脑正式 `Application Support/swivd` 数据。
++
++同平台迁移：等待作业终态、停止服务，将整个文件夹复制到新电脑，再启动并重新提供 token。跨平台迁移：解压目标平台新包，在首次启动前将旧包的整个 `data` 目录复制到新包旁；**不要覆盖已运行的新包 data，也不要混合两个 runs/ledger 目录**。启动会重新校验数据。保留原副本直到新电脑验收通过。
++
++旧不可变 manifest、合同或冻结源内保留原电脑的历史路径，这是来源档案，不是新版服务的运行路径依赖。不要为了清理姓名/路径而修改这些历史字节，否则哈希校验必然失败。分发给他人前应考虑历史路径隐私和 Tushare 数据许可；本包供你在自有或已获授权的电脑间迁移，并非公开数据再分发授权。
++
++不要编辑或向 `seed-data/runs`、`app/output/runs` 内部添加文件；Finder 在封存目录内产生 `.DS_Store` 也会改变其完整库存。如果出现 `SNAPSHOT_METADATA_UNEXPECTED`，保留运行数据，从原 ZIP 重新解压到新目录，不要修改快照清单。
++
++## 校验与目标机验收
++
++包旁的 `.zip.sha256` 用于传输完整性校验，不是数字签名；应通过可信来源取得校验值。Mac 可用 `shasum -a 256 文件.zip`；Windows PowerShell 可用 `Get-FileHash 文件.zip -Algorithm SHA256`，与提供的值比对。
++
++进入已解压目录，只读检查不会提示 token，不初始化 data，也不联网：
++
++```sh
++# Mac
++./runtime/bin/python3.14 -I -B -X utf8 launcher.py verify
++./runtime/bin/python3.14 -I -B -X utf8 launcher.py doctor
++```
++
++```bat
++rem Windows
++runtime\python.exe -I -B -X utf8 launcher.py verify
++runtime\python.exe -I -B -X utf8 launcher.py doctor
++```
++
++依赖、时区、旧档案和数据校验应通过；未输入 token 时 `token_configured=false` 正常。完整独立验收在系统临时目录复制一份数据和程序，验证离线重建、中文空格迁移与本地 HTTP，不读取真实 token、不调用真实数据接口：
++
++```sh
++# Mac；Windows 改为 runtime\python.exe
++./runtime/bin/python3.14 -I -B -X utf8 verify_delivery.py --package .
++```
++
++Windows 接收者还需双击启动器，手动无回显输入 token，在 Chrome 打开页面并完成一次真实更新和历史载入，检查进度、旧页面继续浏览、成功后切换，再安全停止。把**不含 token**的安全结果及错误码返回给维护者；不能仅凭“压缩包解压成功”关闭 Windows 验收。
++
++如果发现文件损坏，请保留 `data` 和错误码，从可信来源重新解压到新的目录；不要编辑清单、停用校验或覆盖旧数据。若系统路径过长、无写权限、架构错误、终端不能隐藏输入，先解决提示的环境问题。
++
++## 维护边界
++
++新便携层不修改原项目公式、成员身份规则、领域模块或校验器；原维护文档在 `app/docs`。已有 9 月 4 日 seed 的 source 闭包与 `app` 原字节绑定，修改已有源码/README 后不能继续假称旧 seed 与新代码匹配。后续迭代应遵守项目批准、冻结和重建流程，不删校验门。
++
++构建源码位于维护项目的 `portable/`；`prepare_runtime.py` 从固定官方来源获取运行时/锁定 wheel，`build.py` 只读组装新目录和 ZIP，`tests/` 测试启动与打包边界。用户机不调用构建器，不联网下载可执行代码。外层启动器只支持显式本地运行，不新增计划任务、云部署、账户、评分或交易。
+--- /dev/null
++++ b/portable/Start-Mac.command
+@@ -0,0 +1,8 @@
++#!/bin/sh
++set -eu
++SWIVD_PACKAGE_ROOT=$(CDPATH= cd -P "$(/usr/bin/dirname "$0")" && pwd)
++if [ ! -x "$SWIVD_PACKAGE_ROOT/runtime/bin/python3.14" ]; then
++    echo "ERROR: BUNDLED_PYTHON_UNAVAILABLE. Extract the complete matching Mac package." >&2
++    exit 1
++fi
++exec "$SWIVD_PACKAGE_ROOT/runtime/bin/python3.14" -I -B -X utf8 "$SWIVD_PACKAGE_ROOT/launcher.py" "$@"
+--- /dev/null
++++ b/portable/Start-Windows.cmd
+@@ -0,0 +1,13 @@
++@echo off
++setlocal DisableDelayedExpansion
++cd /d "%~dp0"
++if errorlevel 1 exit /b 1
++if not exist "%~dp0runtime\python.exe" (
++    echo ERROR: BUNDLED_PYTHON_UNAVAILABLE. Extract the complete Windows x64 package. 1>&2
++    pause
++    exit /b 1
++)
++"%~dp0runtime\python.exe" -I -B -X utf8 "%~dp0launcher.py" %*
++set "SWIVD_EXIT=%ERRORLEVEL%"
++if not "%SWIVD_EXIT%"=="0" pause
++exit /b %SWIVD_EXIT%
+--- /dev/null
++++ b/portable/THIRD-PARTY.md
+@@ -0,0 +1,12 @@
++# 第三方组件与再分发说明
++
++本便携包仅将运行时、依赖、既有项目与数据组合到独立目录。没有修改 Python 解释器或第三方扩展二进制，不授予原项目或数据的额外所有权、公开再分发或商业使用许可。
++
++- Mac：CPython 3.14.6，来自 Astral `python-build-standalone` 的 `20260804 install_only_stripped` 构建。保留 runtime 自带许可证。构建工具的 MPL-2.0 不替代其运行时各组件许可。[上游项目](https://github.com/astral-sh/python-build-standalone)
++- Windows：Python.org 官方 `python-3.14.6-embed-amd64.zip`，保留其中 PSF 与相关第三方许可。仅调整私有 `python314._pth` 搜索路径指向包内依赖；不启用用户 site，不配置系统 Python。[官方内嵌分发说明](https://docs.python.org/3.14/using/windows.html#the-embeddable-package)
++- CPython 版权与许可：[PSF 官方许可证](https://docs.python.org/3.14/license.html)。请同时阅读 `runtime` 中实际随包的完整许可文本。
++- 20 个依赖保持 `app/requirements.lock` 精确版本。来源、wheel 文件名、SHA-256 见 `runtime-manifest.json`；完整 `.dist-info` 与许可证保留在 `packages/`。没有执行源代码构建或升级依赖。
++- 启动仅需要库，不分发依赖 wheel 的开发命令行入口；相应删除/布局调整在运行时构建清单中披露。运行时内部相对链接如被解引用为同字节普通文件，仅用于便携压缩，不改变二进制内容。
++- 原项目源码、冻结研究数据和历史报告仍受其原有权利与使用条件约束。Tushare 账号接口权限与数据许可不因本便携包转移，接收电脑必须使用自己的合法 token。
++
++`package-manifest.json` 是本地完整性清单，不是代码签名、第三方安全保证或 Tushare 授权回执。包旁验收报告限定实际验证的平台、时间与范围，不能把未实测的平台写为通过。
+--- /dev/null
++++ b/portable/build.py
+@@ -0,0 +1,233 @@
++"""Build local, self-contained distributions. No networking or project mutation.
++
++Use prepare_runtime.py first. This builder consumes only hash-bound runtime
++assets and the exact, previously verified seed; every destination must be new.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++import re
++import shutil
++import stat
++from pathlib import Path, PurePosixPath
++import sys
++import zipfile
++
++SEED_ID = 'SWIVD2-RUN-20260904-001'
++SEED_SHA = 'cfb0e20fa13fa76ea8fbdc1ac611b246f0f48bebd87e1b80f92bb03f522dba6a'
++LEGACY_ID = 'SWIVD-RUN-20260828-004'
++LEGACY_SHA = '5180fd5eb20e2cd556a5a5066039fba676272d735ae2d91b9b798e59b33daea0'
++TARGETS = ('macos-arm64', 'macos-x86_64', 'windows-x86_64')
++VERSION = '2.3.0-portable.1'
++HERE = Path(__file__).resolve().parent
++
++
++def linked(path: Path) -> bool:
++    return path.is_symlink() or path.is_junction()
++
++
++def sha(path: Path) -> str:
++    with path.open('rb') as stream:
++        return hashlib.file_digest(stream, 'sha256').hexdigest()
++
++
++def read(path: Path):
++    return json.loads(path.read_text(encoding='utf-8'))
++
++
++def write(path: Path, value):
++    path.write_text(json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
++
++
++def safe_path(root: Path, value: str) -> Path:
++    pure = PurePosixPath(value)
++    if not value or not pure.parts or pure.is_absolute() or pure.as_posix() != value or any(
++        part in ('', '.', '..') or re.search(r'[<>:"\\|?*\x00-\x1f]', part)
++        or part.endswith((' ', '.')) or re.fullmatch(r'CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]', part.split('.')[0], re.I)
++        for part in pure.parts
++    ):
++        raise ValueError('PACKAGE_PATH_INVALID')
++    target = root.joinpath(*pure.parts)
++    for candidate in (target, *target.parents):
++        if candidate == root:
++            break
++        if linked(candidate):
++            raise ValueError('PACKAGE_SYMLINK_FORBIDDEN')
++    return target
++
++
++def verify_record(root: Path, record: dict):
++    path = safe_path(root, record['path'])
++    if not path.is_file() or path.stat().st_size != record['bytes'] or sha(path) != record['sha256']:
++        raise ValueError('BUILD_INPUT_HASH_MISMATCH')
++
++
++def inventory(root: Path):
++    if linked(root) or not root.is_dir():
++        raise ValueError('BUILD_INPUT_ROOT_INVALID')
++    result = []
++    for path in sorted(root.rglob('*')):
++        safe_path(root, path.relative_to(root).as_posix())
++        if linked(path):
++            raise ValueError('PACKAGE_SYMLINK_FORBIDDEN')
++        if path.is_file():
++            result.append({'path': path.relative_to(root).as_posix(),
++                           'bytes': path.stat().st_size, 'sha256': sha(path)})
++    return result
++
++
++def copy_tree(source: Path, destination: Path):
++    # Do not follow links even if their target happens to be available here.
++    if linked(source) or not source.is_dir():
++        raise ValueError('BUILD_INPUT_SYMLINK')
++    for path in source.rglob('*'):
++        if linked(path):
++            raise ValueError('BUILD_INPUT_SYMLINK')
++    shutil.copytree(source, destination)
++
++
++def verify_snapshot_inventory(root: Path, manifest: dict):
++    records = manifest['artifacts']
++    declared = {r['path'] for r in records}
++    if len(declared) != len(records):
++        raise ValueError('SNAPSHOT_DUPLICATE_ARTIFACT')
++    observed = {r['path'] for r in inventory(root)}
++    if observed != declared | {'manifest.json', 'SHA256SUMS'}:
++        raise ValueError('SNAPSHOT_INVENTORY_MISMATCH')
++    for record in records:
++        verify_record(root, record)
++
++
++def source_and_seed(project: Path, seed_data: Path, output: Path):
++    seed_run = seed_data / 'runs' / SEED_ID
++    if sha(seed_run / 'manifest.json') != SEED_SHA:
++        raise ValueError('SEED_IDENTITY_MISMATCH')
++    manifest = read(seed_run / 'manifest.json')
++    if manifest['purpose'] != 'UPDATE_LATEST' or manifest['decision_eligible'] or manifest['production_approved']:
++        raise ValueError('SEED_SCOPE_INVALID')
++    verify_snapshot_inventory(seed_run, manifest)
++    app = output / 'app'
++    app.mkdir()
++    source_paths = []
++    for record in manifest['source_files']:
++        verify_record(project, record)
++        source_paths.append(record['path'])
++    # Retain the v1 CLI's original spec, without changing its historical paths.
++    source_paths.append('PROJECT_SPEC.json')
++    for relative in sorted(set(source_paths)):
++        source = safe_path(project, relative)
++        destination = safe_path(app, relative)
++        destination.parent.mkdir(parents=True, exist_ok=True)
++        shutil.copy2(source, destination)
++    legacy = project / 'output' / 'runs' / LEGACY_ID
++    if sha(legacy / 'manifest.json') != LEGACY_SHA:
++        raise ValueError('LEGACY_IDENTITY_MISMATCH')
++    verify_snapshot_inventory(legacy, read(legacy / 'manifest.json'))
++    (app / 'output' / 'runs').mkdir(parents=True)
++    copy_tree(legacy, app / 'output' / 'runs' / LEGACY_ID)
++    seed_out = output / 'seed-data'
++    (seed_out / 'runs').mkdir(parents=True)
++    copy_tree(seed_run, seed_out / 'runs' / SEED_ID)
++    pointer = read(seed_data / 'latest_run.json')
++    if pointer['run_id'] != SEED_ID or pointer['target_sha256'] != SEED_SHA:
++        raise ValueError('SEED_POINTER_MISMATCH')
++    shutil.copy2(seed_data / 'latest_run.json', seed_out / 'latest_run.json')
++    lines = (seed_data / 'run_ledger.ndjson').read_bytes().splitlines(keepends=True)
++    selected = [line for line in lines if json.loads(line).get('run_id') == SEED_ID]
++    if len(selected) != 1 or json.loads(selected[0]).get('event') != 'RUN_SUCCEEDED':
++        raise ValueError('SEED_LEDGER_MISMATCH')
++    (seed_out / 'run_ledger.ndjson').write_bytes(selected[0])
++
++
++def build(*, project: Path, seed_data: Path, assets: Path, output_dir: Path, target: str) -> dict:
++    package_name = f'SWIVD-{VERSION}-{target}'
++    output = output_dir / package_name
++    archive = output_dir / (package_name + '.zip')
++    if output.exists() or archive.exists():
++        raise ValueError('DESTINATION_ALREADY_EXISTS')
++    asset_root = assets / target
++    asset = read(asset_root / 'asset-manifest.json')
++    if asset['target'] != target or asset['python_version'] != '3.14.6':
++        raise ValueError('RUNTIME_IDENTITY_MISMATCH')
++    records = asset['files']
++    expected_paths = {record['path'] for record in records}
++    if len(expected_paths) != len(records):
++        raise ValueError('DUPLICATE_ASSET_PATH')
++    actual = {f'{name}/{record["path"]}' for name in ('runtime', 'packages')
++              for record in inventory(asset_root / name)}
++    if expected_paths != actual:
++        raise ValueError('ASSET_INVENTORY_MISMATCH')
++    for record in records:
++        verify_record(asset_root, record)
++    if asset.get('requirements_sha256') != sha(project / 'requirements.lock'):
++        raise ValueError('ASSET_LOCK_MISMATCH')
++    sources = read(HERE / 'runtime-sources.json')
++    if asset.get('runtime_source') != sources['targets'][target]:
++        raise ValueError('ASSET_UPSTREAM_MISMATCH')
++    if target.startswith('macos-'):
++        if asset.get('macho_dependencies', {}).get('status') != 'PASS':
++            raise ValueError('ASSET_NATIVE_DEPENDENCIES_UNVERIFIED')
++    else:
++        review = asset.get('windows_dependencies', {})
++        if not review.get('binary_count') or review.get('unresolved_non_system_names') != []:
++            raise ValueError('ASSET_NATIVE_DEPENDENCIES_UNVERIFIED')
++    output.mkdir(parents=True)
++    source_and_seed(project, seed_data, output)
++    for name in ('runtime', 'packages'):
++        copy_tree(asset_root / name, output / name)
++    for name in ('launcher.py', 'verify_delivery.py', 'README-PORTABLE.md', 'THIRD-PARTY.md'):
++        shutil.copy2(HERE / name, output / name)
++    script = 'Start-Windows.cmd' if target.startswith('windows') else 'Start-Mac.command'
++    shutil.copy2(HERE / script, output / script)
++    if not target.startswith('windows'):
++        (output / script).chmod(0o755)
++    shutil.copy2(asset_root / 'asset-manifest.json', output / 'runtime-manifest.json')
++    shutil.copy2(HERE / 'runtime-sources.json', output / 'runtime-sources.json')
++    executable = 'runtime/python.exe' if target.startswith('windows') else 'runtime/bin/python3.14'
++    package = {'schema_version': 'swivd-portable-v1', 'version': VERSION, 'target': target,
++               'python_version': '3.14.6', 'python_executable': executable,
++               'seed_run_id': SEED_ID, 'seed_manifest_sha256': SEED_SHA, 'seed_as_of': '20260904',
++               'decision_id': 'GOV-20260906-004', 'research_grade': 'RESEARCH_ONLY',
++               'decision_eligible': False, 'production_approved': False,
++               'windows_e2e': 'WINDOWS_E2E_UNVERIFIED',
++               'minimum_os': {'macos-arm64': 'macOS 11', 'macos-x86_64': 'macOS 10.15',
++                              'windows-x86_64': 'Windows 10 x64'}[target],
++               'data_directory': 'data/state',
++               'files': inventory(output)}
++    write(output / 'package-manifest.json', package)
++    # ZIP preserves Unix execute bits for macOS. No symlinks, caches, or user data.
++    with zipfile.ZipFile(archive, 'x', compression=zipfile.ZIP_DEFLATED, compresslevel=6) as bundle:
++        for record in inventory(output):
++            path = output / record['path']
++            info = zipfile.ZipInfo(package_name + '/' + record['path'], (2026, 9, 6, 0, 0, 0))
++            info.create_system = 3
++            mode = 0o755 if path.stat().st_mode & stat.S_IXUSR else 0o644
++            info.external_attr = (stat.S_IFREG | mode) << 16
++            info.compress_type = zipfile.ZIP_DEFLATED
++            with path.open('rb') as source, bundle.open(info, 'w', force_zip64=True) as sink:
++                shutil.copyfileobj(source, sink)
++    result = {'target': target, 'archive': archive.name, 'bytes': archive.stat().st_size,
++              'sha256': sha(archive), 'manifest_sha256': sha(output / 'package-manifest.json'),
++              'package_files': len(package['files']), 'seed_run_id': SEED_ID}
++    (output_dir / (archive.name + '.sha256')).write_text(result['sha256'] + '  ' + archive.name + '\n', encoding='ascii')
++    write(output_dir / (package_name + '-build.json'), result)
++    return result
++
++
++def main():
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument('--project', type=Path, required=True)
++    parser.add_argument('--seed-data', type=Path, required=True)
++    parser.add_argument('--assets-dir', type=Path, required=True)
++    parser.add_argument('--output-dir', type=Path, required=True)
++    parser.add_argument('--target', choices=TARGETS, action='append')
++    args = parser.parse_args()
++    for target in args.target or TARGETS:
++        print(json.dumps(build(project=args.project.resolve(), seed_data=args.seed_data.resolve(),
++              assets=args.assets_dir.resolve(), output_dir=args.output_dir.resolve(), target=target)), flush=True)
++
++
++if __name__ == '__main__':
++    main()
+--- /dev/null
++++ b/portable/launcher.py
+@@ -0,0 +1,406 @@
++#!/usr/bin/env python3
++"""Offline-first launcher for the self-contained SWIVD distribution.
++
++The manifest detects corruption; it is not a publisher signature. All writable
++application state lives under data/state, separate from the verified payload.
++"""
++
++from __future__ import annotations
++
++import argparse
++import contextlib
++import getpass
++import hashlib
++import importlib.util
++import io
++import json
++import os
++import platform
++import re
++import shutil
++import socket
++import stat
++import sys
++import tempfile
++import warnings
++from pathlib import Path, PurePosixPath
++from typing import Any
++
++
++TARGETS = {"macos-arm64", "macos-x86_64", "windows-x86_64"}
++SHA256 = re.compile(r"[0-9a-f]{64}")
++
++
++class PortableError(Exception):
++    """Only fixed, non-secret diagnostic codes cross the launcher boundary."""
++
++
++def _error(code: str) -> None:
++    raise PortableError(code)
++
++
++def _is_link(path: Path) -> bool:
++    # NTFS directory junctions are not reported by is_symlink().
++    return path.is_symlink() or path.is_junction()
++
++
++def _safe_path(value: Any) -> str:
++    if not isinstance(value, str) or not value or "\\" in value or ":" in value:
++        _error("PACKAGE_PATH_INVALID")
++    path = PurePosixPath(value)
++    if (path.is_absolute() or path.as_posix() != value
++            or any(part in {"", ".", ".."} for part in value.split("/"))
++            or any(ord(char) < 32 for char in value)):
++        _error("PACKAGE_PATH_INVALID")
++    if path.parts[0] == "data" or value == "package-manifest.json":
++        _error("PACKAGE_PATH_INVALID")
++    return value
++
++
++def _regular_tree(root: Path, *, package: bool = False) -> dict[str, Path]:
++    if _is_link(root) or not root.is_dir():
++        _error("DIRECTORY_UNSAFE")
++    files: dict[str, Path] = {}
++
++    def walk_error(_exc: OSError) -> None:
++        _error("DIRECTORY_UNREADABLE")
++
++    for directory, names, filenames in os.walk(root, followlinks=False, onerror=walk_error):
++        base = Path(directory)
++        for name in list(names):
++            path = base / name
++            if _is_link(path):
++                _error("SYMLINK_FORBIDDEN")
++            if package and base == root and name == "data":
++                names.remove(name)
++        for name in filenames:
++            path = base / name
++            if _is_link(path):
++                _error("SYMLINK_FORBIDDEN")
++            if not stat.S_ISREG(path.stat().st_mode):
++                _error("NON_REGULAR_FILE")
++            relative = path.relative_to(root).as_posix()
++            if package:
++                if relative == "package-manifest.json":
++                    continue
++                # Ignore unbound Finder metadata outside immutable snapshots.
++                # Within a run it changes the original exact-file inventory.
++                if name == ".DS_Store":
++                    if relative.startswith(("seed-data/runs/", "app/output/runs/")):
++                        _error("SNAPSHOT_METADATA_UNEXPECTED")
++                    continue
++            files[relative] = path
++    return files
++
++
++def _sha256(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as handle:
++        for block in iter(lambda: handle.read(1024 * 1024), b""):
++            digest.update(block)
++    return digest.hexdigest()
++
++
++def verify_package(root: Path) -> dict[str, Any]:
++    """Verify every immutable file before importing project or wheel code."""
++    manifest_path = root / "package-manifest.json"
++    if _is_link(manifest_path) or not manifest_path.is_file():
++        _error("PACKAGE_MANIFEST_MISSING")
++    try:
++        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
++    except (OSError, UnicodeError, ValueError):
++        _error("PACKAGE_MANIFEST_INVALID")
++    if (not isinstance(manifest, dict)
++            or manifest.get("schema_version") != "swivd-portable-v1"
++            or manifest.get("target") not in TARGETS
++            or manifest.get("python_version") != "3.14.6"
++            or not isinstance(manifest.get("files"), list)):
++        _error("PACKAGE_MANIFEST_INVALID")
++    expected: dict[str, dict[str, Any]] = {}
++    for record in manifest["files"]:
++        if not isinstance(record, dict) or set(record) != {"path", "bytes", "sha256"}:
++            _error("PACKAGE_MANIFEST_INVALID")
++        relative = _safe_path(record["path"])
++        if (relative in expected or type(record["bytes"]) is not int or record["bytes"] < 0
++                or not isinstance(record["sha256"], str) or SHA256.fullmatch(record["sha256"]) is None):
++            _error("PACKAGE_MANIFEST_INVALID")
++        expected[relative] = record
++    required = {"launcher.py", "app/run_dashboard.py", "app/PROJECT_SPEC_V4.json", "seed-data/latest_run.json"}
++    if not expected or not required <= expected.keys():
++        _error("PACKAGE_REQUIRED_FILE_MISSING")
++    actual = _regular_tree(root, package=True)
++    if set(actual) != set(expected):
++        _error("PACKAGE_INVENTORY_MISMATCH")
++    for relative, path in actual.items():
++        record = expected[relative]
++        if path.stat().st_size != record["bytes"] or _sha256(path) != record["sha256"]:
++            _error("PACKAGE_HASH_MISMATCH")
++    return manifest
++
++
++def verify_runtime(root: Path, manifest: dict[str, Any]) -> None:
++    target = manifest["target"]
++    system = platform.system()
++    machine = platform.machine().lower()
++    actual = {
++        ("Darwin", "arm64"): "macos-arm64",
++        ("Darwin", "aarch64"): "macos-arm64",
++        ("Darwin", "x86_64"): "macos-x86_64",
++        ("Windows", "amd64"): "windows-x86_64",
++        ("Windows", "x86_64"): "windows-x86_64",
++    }.get((system, machine))
++    if actual != target:
++        _error("PLATFORM_MISMATCH")
++    if sys.implementation.name != "cpython" or sys.version_info[:3] != (3, 14, 6):
++        _error("PYTHON_VERSION_MISMATCH")
++    executable = root / ("runtime/python.exe" if target.startswith("windows") else "runtime/bin/python3.14")
++    if Path(sys.executable).resolve() != executable.resolve():
++        _error("BUNDLED_PYTHON_REQUIRED")
++    if not sys.flags.isolated or not sys.dont_write_bytecode:
++        _error("ISOLATED_PYTHON_REQUIRED")
++
++
++def _load_app(root: Path) -> Any:
++    # Explicit paths also work with Windows' isolated python314._pth runtime.
++    for path in (root / "packages", root / "app" / "src"):
++        if not path.is_dir() or _is_link(path):
++            _error("PACKAGE_REQUIRED_DIRECTORY_MISSING")
++        sys.path.insert(0, str(path))
++    spec = importlib.util.spec_from_file_location("_swivd_portable_app", root / "app" / "run_dashboard.py")
++    if spec is None or spec.loader is None:
++        _error("APP_ENTRYPOINT_UNAVAILABLE")
++    entry = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(entry)
++    return entry
++
++
++def validate_state(data_dir: Path) -> dict[str, Any]:
++    """Read-only verification of current and explicitly indexed history."""
++    from swivd.v2_storage import resolve_pointer
++    from swivd.v2_validator import validate_run_v2
++
++    _regular_tree(data_dir)
++    if (data_dir / "transactions" / "publication.json").exists():
++        _error("DATA_RECOVERY_REQUIRED")
++    try:
++        current = resolve_pointer(data_dir)
++        if current is None:
++            _error("DATA_CURRENT_MISSING")
++        validate_run_v2(current[0])
++        checked = {current[0]}
++        index_path = data_dir / "historical_index.json"
++        if index_path.exists():
++            index = json.loads(index_path.read_text(encoding="utf-8"))
++            if not isinstance(index, dict) or not isinstance(index.get("dates"), dict):
++                _error("DATA_HISTORY_INVALID")
++            for date in index["dates"]:
++                historical = resolve_pointer(data_dir, historical_date=date)
++                if historical is None:
++                    _error("DATA_HISTORY_INVALID")
++                if historical[0] not in checked:
++                    validate_run_v2(historical[0])
++                    checked.add(historical[0])
++        return {"state_verified": True, "as_of": current[1]["as_of"], "snapshots_verified": len(checked)}
++    except PortableError:
++        raise
++    except Exception:
++        _error("DATA_VALIDATION_FAILED")
++
++
++@contextlib.contextmanager
++def _import_lock(container: Path):
++    path = container / ".import.lock"
++    if _is_link(path):
++        _error("SYMLINK_FORBIDDEN")
++    flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
++    fd = os.open(path, flags, 0o600)
++    handle = os.fdopen(fd, "r+b")
++    locked = False
++    try:
++        if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
++            _error("DATA_LOCK_INVALID")
++        if os.fstat(handle.fileno()).st_size == 0:
++            handle.write(b"0")
++            handle.flush()
++        handle.seek(0)
++        try:
++            if os.name == "nt":
++                import msvcrt
++                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
++            else:
++                import fcntl
++                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
++            locked = True
++        except OSError:
++            _error("DATA_IMPORT_BUSY")
++        yield
++    finally:
++        if locked:
++            handle.seek(0)
++            if os.name == "nt":
++                import msvcrt
++                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
++            else:
++                import fcntl
++                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
++        handle.close()
++
++
++def _recover_state(state: Path) -> None:
++    from swivd.v2_storage import SingleWriterLock, recover_publication
++
++    _regular_tree(state)
++    try:
++        with SingleWriterLock(state):
++            recover_publication(state)
++    except Exception:
++        _error("DATA_BUSY_OR_RECOVERY_FAILED")
++
++
++def prepare_data(root: Path) -> Path:
++    """Import only into an absent state directory; never merge or overwrite."""
++    container = root / "data"
++    if _is_link(container) or (container.exists() and not container.is_dir()):
++        _error("DATA_CONTAINER_UNSAFE")
++    container.mkdir(exist_ok=True)
++    with _import_lock(container):
++        for path in container.iterdir():
++            if _is_link(path):
++                _error("SYMLINK_FORBIDDEN")
++            if path.name not in {"state", ".import.lock"} and not path.name.startswith(".import-"):
++                _error("DATA_CONTAINER_UNRECOGNIZED")
++        state = container / "state"
++        if state.exists():
++            if not state.is_dir():
++                _error("DATA_STATE_UNSAFE")
++            _recover_state(state)
++            validate_state(state)
++            return state
++        # A failed/interrupted staging copy remains evidence but is never used.
++        staging = Path(tempfile.mkdtemp(prefix=".import-", dir=container))
++        try:
++            shutil.copytree(root / "seed-data", staging, dirs_exist_ok=True, symlinks=True,
++                            ignore=shutil.ignore_patterns(".DS_Store"))
++            validate_state(staging)
++            if state.exists() or _is_link(state):
++                _error("DATA_IMPORT_CONFLICT")
++            staging.rename(state)
++        except PortableError:
++            raise
++        except Exception:
++            _error("DATA_IMPORT_FAILED")
++        return state
++
++
++def _check_token(token: Any) -> str:
++    if not isinstance(token, str):
++        _error("TOKEN_INVALID")
++    if any(character in token for character in ("\r", "\n", "\x00")):
++        _error("TOKEN_INVALID")
++    return token.strip()
++
++
++def configure_token(*, interactive: bool) -> str:
++    """ENV → silent local SDK lookup → optional non-echo terminal input."""
++    token = _check_token(os.environ.get("TUSHARE_TOKEN", ""))
++    source = "ENVIRONMENT" if token else "NONE"
++    if not token:
++        try:
++            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
++                import tushare
++                local = tushare.get_token()
++            token = _check_token(local or "")
++        except PortableError:
++            raise
++        except Exception:
++            _error("TOKEN_LOOKUP_FAILED")
++        if token:
++            source = "TUSHARE_LOOKUP"
++    if not token and interactive:
++        if not sys.stdin.isatty() or not sys.stderr.isatty():
++            _error("TOKEN_TERMINAL_REQUIRED")
++        try:
++            with warnings.catch_warnings():
++                warnings.simplefilter("error", getpass.GetPassWarning)
++                token = _check_token(getpass.getpass("Tushare token（输入不显示；直接回车只浏览已有数据）："))
++        except (getpass.GetPassWarning, EOFError):
++            _error("TOKEN_TERMINAL_REQUIRED")
++        if token:
++            source = "SESSION_INPUT"
++    if token:
++        os.environ["TUSHARE_TOKEN"] = token
++    return source
++
++
++def _check_port(port: int) -> None:
++    if not 1 <= port <= 65535:
++        _error("INVALID_PORT")
++    try:
++        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
++            probe.bind(("127.0.0.1", port))
++    except OSError:
++        _error("PORT_UNAVAILABLE")
++
++
++class _Parser(argparse.ArgumentParser):
++    def error(self, _message: str) -> None:
++        _error("INVALID_ARGUMENTS")
++
++
++def main(argv: list[str] | None = None, *, root: Path | None = None) -> int:
++    parser = _Parser(description="申万估值仪表盘便携版：无需安装 Python，不保存 token")
++    parser.add_argument("command", nargs="?", choices=("serve", "verify", "doctor", "self-test"), default="serve")
++    parser.add_argument("--port", type=int, default=8765)
++    args = parser.parse_args(argv)
++    if args.command == "serve":
++        print("正在校验便携包和冻结数据，请稍候...", flush=True)
++    package_root = root if root is not None else Path(__file__).absolute().parent
++    if _is_link(package_root):
++        _error("SYMLINK_FORBIDDEN")
++    package_root = package_root.resolve()
++    manifest = verify_package(package_root)
++    verify_runtime(package_root, manifest)
++    entry = _load_app(package_root)
++    seed = validate_state(package_root / "seed-data")
++    state = package_root / "data" / "state"
++    if args.command in {"verify", "self-test"}:
++        result: dict[str, Any] = {"package_verified": True, "target": manifest["target"], "seed": seed}
++        if state.exists() or _is_link(state):
++            result["data"] = validate_state(state)
++        if args.command == "self-test":
++            result["doctor"] = entry._doctor(state, "127.0.0.1", args.port)
++        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
++        return 0
++    if args.command == "doctor":
++        result = entry._doctor(state, "127.0.0.1", args.port)
++        if state.exists() or _is_link(state):
++            result["data_verified"] = bool(validate_state(state)["state_verified"])
++        print(json.dumps(result, ensure_ascii=False, sort_keys=True))
++        return 0
++    _check_port(args.port)
++    source = configure_token(interactive=True)
++    state = prepare_data(package_root)
++    print("仅本机运行。请手动在浏览器打开 http://127.0.0.1:" + str(args.port))
++    print("停止：在本终端按 Ctrl+C；迁移前请先等待更新完成，再停止服务。")
++    if source == "NONE":
++        print("未配置 token：可以浏览已有数据，更新需要重启后输入有效 token。")
++    return entry.main(["serve", "--data-dir", str(state), "--host", "127.0.0.1", "--port", str(args.port)])
++
++
++def cli(argv: list[str] | None = None) -> int:
++    try:
++        return main(argv)
++    except KeyboardInterrupt:
++        print("INTERRUPTED", file=sys.stderr)
++        return 130
++    except PortableError as exc:
++        print("ERROR: " + str(exc), file=sys.stderr)
++        return 1
++    except Exception:
++        # No traceback, arbitrary SDK message, path or input is user-visible.
++        print("ERROR: PORTABLE_OPERATION_FAILED", file=sys.stderr)
++        return 1
++
++
++if __name__ == "__main__":
++    raise SystemExit(cli())
+--- /dev/null
++++ b/portable/prepare_runtime.py
+@@ -0,0 +1,492 @@
++#!/usr/bin/env python3
++"""Build fixed, offline-ready runtime assets without installing into the host.
++
++Build prerequisites: a Python 3.11+ interpreter with pip and certifi. Target
++machines do not need those tools. Run with -I -B. This module never reads tokens.
++"""
++from __future__ import annotations
++
++import argparse
++import hashlib
++import json
++from pathlib import Path, PurePosixPath
++import re
++import shutil
++import ssl
++import stat
++import struct
++import subprocess
++import sys
++import tarfile
++import tempfile
++import urllib.parse
++import urllib.request
++import zipfile
++
++
++HERE = Path(__file__).resolve().parent
++
++
++def digest(path: Path) -> str:
++    with path.open("rb") as stream:
++        return hashlib.file_digest(stream, "sha256").hexdigest()
++
++
++def lock_entries(path: Path) -> dict[str, dict]:
++    result: dict[str, dict] = {}
++    current = None
++    for line in path.read_text(encoding="utf-8").splitlines():
++        match = re.match(r"^([A-Za-z0-9_.-]+)==([^\s\\]+)", line)
++        if match:
++            current = match.group(1).lower().replace("_", "-")
++            result[current] = {"version": match.group(2), "hashes": []}
++        elif line.strip().startswith("--hash=") and current:
++            result[current]["hashes"].append(line.strip().split("sha256:")[1].split()[0])
++    if len(result) != 20 or any(not value["hashes"] for value in result.values()):
++        raise ValueError("LOCK_SCHEMA_OR_PACKAGE_COUNT")
++    return result
++
++
++class RuntimeRedirect(urllib.request.HTTPRedirectHandler):
++    def redirect_request(self, req, fp, code, msg, headers, newurl):
++        # GitHub Release assets require a signed redirect onto its own CDN.
++        parsed = urllib.parse.urlsplit(newurl)
++        if parsed.scheme != "https" or parsed.hostname not in {
++            "github.com", "release-assets.githubusercontent.com", "objects.githubusercontent.com",
++            "www.python.org", "pypi.org", "files.pythonhosted.org",
++        } or parsed.username or parsed.password:
++            raise ValueError("UNAPPROVED_RUNTIME_REDIRECT")
++        return super().redirect_request(req, fp, code, msg, headers, newurl)
++
++
++def fetch_runtime(source: dict, downloads: Path, ca_file: str) -> Path:
++    destination = downloads / urllib.parse.unquote(source["url"].rsplit("/", 1)[1])
++    if destination.exists():
++        if digest(destination) != source["sha256"]:
++            raise ValueError("CACHED_RUNTIME_HASH_MISMATCH")
++        return destination
++    opener = urllib.request.build_opener(
++        urllib.request.HTTPSHandler(context=ssl.create_default_context(cafile=ca_file)),
++        RuntimeRedirect(),
++    )
++    part = destination.with_suffix(destination.suffix + ".part")
++    start = part.stat().st_size if part.exists() else 0
++    headers = {"User-Agent": "SWIVD-portable-builder/1"}
++    if start:
++        headers["Range"] = f"bytes={start}-"
++    request = urllib.request.Request(source["url"], headers=headers)
++    with opener.open(request, timeout=90) as response:
++        append = start and response.status == 206
++        if append and not response.headers.get("Content-Range", "").startswith(f"bytes {start}-"):
++            raise ValueError("RUNTIME_RANGE_MISMATCH")
++        with part.open("ab" if append else "wb") as output:
++            shutil.copyfileobj(response, output)
++    if digest(part) != source["sha256"]:
++        raise ValueError("RUNTIME_HASH_MISMATCH")
++    if source.get("size") is not None and part.stat().st_size != source["size"]:
++        raise ValueError("RUNTIME_SIZE_MISMATCH")
++    part.replace(destination)
++    return destination
++
++
++def safe_relative(name: str) -> PurePosixPath:
++    relative = PurePosixPath(name)
++    if not name or relative.is_absolute() or ".." in relative.parts or "\\" in name or ":" in name:
++        raise ValueError("UNSAFE_ARCHIVE_PATH")
++    return relative
++
++
++def extract_runtime(archive: Path, source: dict, destination: Path) -> dict:
++    unpack = Path(tempfile.mkdtemp(prefix=".runtime-unpack-", dir=destination.parent))
++    try:
++        if archive.name.endswith(".zip"):
++            with zipfile.ZipFile(archive) as package:
++                for entry in package.infolist():
++                    safe_relative(entry.filename)
++                    if stat.S_ISLNK(entry.external_attr >> 16):
++                        raise ValueError("ZIP_RUNTIME_SYMLINK")
++                package.extractall(unpack)
++        else:
++            with tarfile.open(archive, "r:gz") as package:
++                for entry in package.getmembers():
++                    safe_relative(entry.name)
++                package.extractall(unpack, filter="data")
++        original = (unpack / source["archive_root"]).resolve()
++        if not original.is_relative_to(unpack):
++            raise ValueError("RUNTIME_ROOT_ESCAPE")
++        for path in original.rglob("*"):
++            if not path.resolve().is_relative_to(original):
++                raise ValueError("RUNTIME_LINK_ESCAPE")
++            if not path.is_dir() and not path.is_file():
++                raise ValueError("RUNTIME_SPECIAL_FILE")
++        shutil.copytree(original, destination, symlinks=False)
++    finally:
++        # This exact directory was created by this function, not supplied by users.
++        shutil.rmtree(unpack)
++    if not (destination / source["executable"]).is_file():
++        raise ValueError("RUNTIME_EXECUTABLE_MISSING")
++    modifications = {"internal_symlinks": "dereferenced to regular files"}
++    if source["platform"] == "win_amd64":
++        pth = destination / "python314._pth"
++        original_pth_sha256 = digest(pth)
++        pth.write_text("python314.zip\n.\n../packages\n", encoding="utf-8")
++        modifications["python314._pth"] = {
++            "original_sha256": original_pth_sha256,
++            "reason": "explicit adjacent package path; site and arbitrary .pth execution disabled",
++        }
++        for name in ("vcruntime140.dll", "vcruntime140_1.dll"):
++            if not (destination / name).is_file():
++                raise ValueError("WINDOWS_VCRUNTIME_MISSING")
++    return modifications
++
++
++def prepare_wheels(lock: Path, wheelhouse: Path, source: dict, ca_file: str) -> None:
++    # Use pip's target-tag compatibility engine but not its expensive live index
++    # resolution: every dependency and allowable hash is already frozen in lock.
++    from pip._internal.models.target_python import TargetPython
++    from pip._vendor.packaging.utils import parse_wheel_filename
++    tags = TargetPython(platforms=[source["platform"]], py_version_info=(3, 14, 6),
++                        abis=["cp314"], implementation="cp").get_sorted_tags()
++    priorities = {tag: index for index, tag in enumerate(tags)}
++    locked = lock_entries(lock)
++    found = set()
++    for wheel in wheelhouse.glob("*.whl"):
++        name, version, _, wheel_tags = parse_wheel_filename(wheel.name)
++        if name not in locked or str(version) != locked[name]["version"] or digest(wheel) not in locked[name]["hashes"]:
++            raise ValueError("CACHED_WHEEL_HASH_OR_VERSION_MISMATCH")
++        if not set(priorities).intersection(wheel_tags):
++            raise ValueError("CACHED_WHEEL_TARGET_INCOMPATIBLE")
++        found.add(name)
++    opener = urllib.request.build_opener(
++        urllib.request.HTTPSHandler(context=ssl.create_default_context(cafile=ca_file)),
++        RuntimeRedirect(),
++    )
++    sources_path = wheelhouse / "wheel-download-sources.json"
++    records = json.loads(sources_path.read_text(encoding="utf-8")) if sources_path.exists() else {}
++    for name, entry in locked.items():
++        if name in found:
++            continue
++        metadata_url = f"https://pypi.org/pypi/{name}/{entry['version']}/json"
++        request = urllib.request.Request(metadata_url, headers={"User-Agent": "SWIVD-portable-builder/1"})
++        with opener.open(request, timeout=45) as response:
++            metadata = json.load(response)
++        candidates = []
++        for asset in metadata["urls"]:
++            if asset["packagetype"] != "bdist_wheel" or asset["yanked"]:
++                continue
++            package, version, _, wheel_tags = parse_wheel_filename(asset["filename"])
++            matches = set(priorities).intersection(wheel_tags)
++            if package == name and str(version) == entry["version"] and matches and asset["digests"]["sha256"] in entry["hashes"]:
++                candidates.append((min(priorities[tag] for tag in matches), asset["filename"], asset))
++        if not candidates:
++            raise ValueError("NO_LOCKED_COMPATIBLE_WHEEL")
++        asset = min(candidates, key=lambda item: item[:2])[2]
++        parsed = urllib.parse.urlsplit(asset["url"])
++        if parsed.scheme != "https" or parsed.hostname != "files.pythonhosted.org" or parsed.username or parsed.password:
++            raise ValueError("UNAPPROVED_WHEEL_HOST")
++        print(source["platform"] + " FETCH_WHEEL " + name, flush=True)
++        destination = wheelhouse / asset["filename"]
++        part = destination.with_suffix(".whl.part")
++        start = part.stat().st_size if part.exists() else 0
++        headers = {"User-Agent": "SWIVD-portable-builder/1"}
++        if start:
++            headers["Range"] = f"bytes={start}-"
++        request = urllib.request.Request(asset["url"], headers=headers)
++        with opener.open(request, timeout=90) as response:
++            append = start and response.status == 206
++            if append and not response.headers.get("Content-Range", "").startswith(f"bytes {start}-"):
++                raise ValueError("WHEEL_RANGE_MISMATCH")
++            with part.open("ab" if append else "wb") as output:
++                shutil.copyfileobj(response, output)
++        if digest(part) != asset["digests"]["sha256"]:
++            raise ValueError("WHEEL_HASH_MISMATCH")
++        part.replace(destination)
++        records[asset["filename"]] = {"url": asset["url"], "metadata_url": metadata_url,
++                                     "sha256": asset["digests"]["sha256"]}
++        sources_path.write_text(json.dumps(records, indent=2) + "\n", encoding="utf-8")
++
++
++def extract_wheels(wheelhouse: Path, packages: Path, locked: dict) -> list[dict]:
++    manifests = []
++    found = set()
++    packages.mkdir()
++    sources_path = wheelhouse / "wheel-download-sources.json"
++    wheel_sources = json.loads(sources_path.read_text(encoding="utf-8")) if sources_path.exists() else {}
++    for wheel in sorted(wheelhouse.glob("*.whl")):
++        name, version = wheel.name.split("-", 2)[:2]
++        name = name.lower().replace("_", "-")
++        wheel_sha = digest(wheel)
++        if name not in locked or version != locked[name]["version"] or wheel_sha not in locked[name]["hashes"]:
++            raise ValueError("WHEEL_NOT_IN_LOCK")
++        if name in found:
++            raise ValueError("DUPLICATE_PACKAGE_WHEEL")
++        found.add(name)
++        records = []
++        omitted = []
++        with zipfile.ZipFile(wheel) as package:
++            for entry in package.infolist():
++                path = safe_relative(entry.filename)
++                if entry.is_dir():
++                    continue
++                if stat.S_ISLNK(entry.external_attr >> 16):
++                    raise ValueError("WHEEL_SYMLINK")
++                if path.parts[0].endswith(".data"):
++                    if len(path.parts) < 3:
++                        raise ValueError("WHEEL_DATA_LAYOUT")
++                    if path.parts[1] in {"purelib", "platlib"}:
++                        path = PurePosixPath(*path.parts[2:])
++                    elif path.parts[1] == "scripts":
++                        omitted.append(str(path))
++                        continue
++                    else:
++                        raise ValueError("UNSUPPORTED_WHEEL_DATA_SCHEME")
++                destination = packages.joinpath(*path.parts)
++                if destination.exists():
++                    raise ValueError("WHEEL_FILE_COLLISION")
++                destination.parent.mkdir(parents=True, exist_ok=True)
++                payload = package.read(entry)
++                destination.write_bytes(payload)
++                mode = entry.external_attr >> 16
++                destination.chmod(0o755 if mode & 0o111 else 0o644)
++                records.append(str(path))
++        manifests.append({"name": name, "version": version, "wheel": wheel.name, "sha256": wheel_sha,
++                          "source": "https://pypi.org/pypi/" + name + "/" + version + "/json",
++                          "download_url": wheel_sources.get(wheel.name, {}).get("url"),
++                          "retrieval": "fixed_upstream_url" if wheel.name in wheel_sources else "previously_downloaded_original_wheel_verified_against_lock",
++                          "installed_files": len(records), "omitted_console_scripts": omitted})
++    if found != set(locked):
++        raise ValueError("LOCKED_PACKAGE_SET_INCOMPLETE")
++    return manifests
++
++
++def inventory(root: Path) -> list[dict]:
++    return [{"path": path.relative_to(root).as_posix(), "sha256": digest(path), "bytes": path.stat().st_size}
++            for path in sorted(root.rglob("*")) if path.is_file()]
++
++
++def asset_inventory(root: Path) -> list[dict]:
++    return [{**entry, "path": section + "/" + entry["path"]}
++            for section in ("runtime", "packages") for entry in inventory(root / section)]
++
++
++def pe_imports(path: Path) -> list[str]:
++    """Read normal and delay import DLL names without executing Windows code."""
++    data = path.read_bytes()
++    if data[:2] != b"MZ":
++        return []
++    pe = struct.unpack_from("<I", data, 0x3C)[0]
++    if data[pe:pe + 4] != b"PE\0\0":
++        raise ValueError("PE_SIGNATURE")
++    machine, sections = struct.unpack_from("<HH", data, pe + 4)
++    if machine != 0x8664:
++        raise ValueError("PE_ARCHITECTURE_MISMATCH")
++    optional_size = struct.unpack_from("<H", data, pe + 20)[0]
++    optional = pe + 24
++    if struct.unpack_from("<H", data, optional)[0] != 0x20B:
++        raise ValueError("PE64_REQUIRED")
++    section_table = optional + optional_size
++    mapping = []
++    for index in range(sections):
++        virtual_size, virtual_address, raw_size, raw_address = struct.unpack_from(
++            "<IIII", data, section_table + index * 40 + 8)
++        mapping.append((virtual_address, max(virtual_size, raw_size), raw_address))
++    def offset(rva):
++        for start, size, raw in mapping:
++            if start <= rva < start + size:
++                return raw + rva - start
++        raise ValueError("PE_RVA_RANGE")
++    def name(rva):
++        start = offset(rva)
++        return data[start:data.index(b"\0", start)].decode("ascii").lower()
++    names = set()
++    for directory_index, descriptor_size, name_offset in ((1, 20, 12), (13, 32, 4)):
++        rva, size = struct.unpack_from("<II", data, optional + 112 + directory_index * 8)
++        if not rva or not size:
++            continue
++        table = offset(rva)
++        for index in range(size // descriptor_size + 1):
++            position = table + index * descriptor_size
++            descriptor = data[position:position + descriptor_size]
++            if descriptor == b"\0" * descriptor_size:
++                break
++            if directory_index == 13 and struct.unpack_from("<I", descriptor)[0] & 1 == 0:
++                raise ValueError("UNSUPPORTED_PE_DELAY_VA")
++            names.add(name(struct.unpack_from("<I", descriptor, name_offset)[0]))
++    return sorted(names)
++
++
++def windows_dependencies(root: Path) -> dict:
++    binaries = [path for path in root.rglob("*") if path.suffix.lower() in {".dll", ".pyd", ".exe"}]
++    provided = {path.name.lower() for path in binaries}
++    system = {"kernel32.dll", "ntdll.dll", "advapi32.dll", "ws2_32.dll", "user32.dll", "ole32.dll",
++              "oleaut32.dll", "shell32.dll", "shlwapi.dll", "bcrypt.dll", "crypt32.dll", "version.dll",
++              "msvcrt.dll", "ucrtbase.dll", "secur32.dll", "rpcrt4.dll", "gdi32.dll", "comdlg32.dll",
++              "comctl32.dll", "winmm.dll", "psapi.dll", "userenv.dll", "iphlpapi.dll", "dbghelp.dll",
++              "pathcch.dll", "normaliz.dll", "powrprof.dll", "propsys.dll"}
++    imported = {path.relative_to(root).as_posix(): pe_imports(path) for path in binaries}
++    unresolved = sorted({name for names in imported.values() for name in names
++                         if name not in provided | system and not name.startswith(("api-ms-win-", "ext-ms-win-"))})
++    return {"method": "PE64 import and delay-import tables; static only, DLL search behavior not executed",
++            "binary_count": len(binaries), "provided_dll_names": sorted(provided),
++            "unresolved_non_system_names": unresolved, "imports": imported,
++            "live_validation_state": "WINDOWS_E2E_UNVERIFIED"}
++
++
++def macho_dependencies(root: Path, source: dict) -> dict:
++    """Inspect actual target Mach-O load commands, not only wheel filename tags."""
++    tool = shutil.which("otool")
++    if tool is None:
++        return {"status": "MACHO_STATIC_UNVERIFIED", "reason": "OTOOL_UNAVAILABLE"}
++    architecture = source["architecture"]
++    minimums = []
++    report = []
++    issues = []
++    magic_numbers = {b"\xfe\xed\xfa\xce", b"\xce\xfa\xed\xfe", b"\xfe\xed\xfa\xcf", b"\xcf\xfa\xed\xfe",
++                     b"\xca\xfe\xba\xbe", b"\xbe\xba\xfe\xca", b"\xca\xfe\xba\xbf", b"\xbf\xba\xfe\xca"}
++    for section in ("runtime", "packages"):
++        for path in sorted((root / section).rglob("*")):
++            if not path.is_file():
++                continue
++            with path.open("rb") as stream:
++                if stream.read(4) not in magic_numbers:
++                    continue
++            command = [tool, "-arch", architecture, "-L", str(path)]
++            links = subprocess.run(command, capture_output=True, text=True, check=True).stdout
++            loads = subprocess.run([tool, "-arch", architecture, "-l", str(path)],
++                                   capture_output=True, text=True, check=True).stdout
++            dependencies = []
++            rpaths = []
++            image_id = None
++            # -L includes LC_ID_DYLIB (the image's own install name). Parse load
++            # command kinds from -l so an @rpath self-ID is not a false missing DLL.
++            for block in re.split(r"\nLoad command \d+\n", loads):
++                kind = re.search(r"\bcmd (LC_[A-Z_]+)", block)
++                if not kind:
++                    continue
++                value = re.search(r"\b(?:name|path) (.+?) \(offset \d+\)", block)
++                if not value:
++                    continue
++                if kind.group(1) in {"LC_LOAD_DYLIB", "LC_LOAD_WEAK_DYLIB", "LC_REEXPORT_DYLIB",
++                                      "LC_LAZY_LOAD_DYLIB", "LC_LOAD_UPWARD_DYLIB"}:
++                    dependencies.append(value.group(1))
++                elif kind.group(1) == "LC_RPATH":
++                    rpaths.append(value.group(1))
++                elif kind.group(1) == "LC_ID_DYLIB":
++                    image_id = value.group(1)
++            versions = re.findall(r"cmd LC_VERSION_MIN_MACOSX\s+cmdsize \d+\s+version (\d+(?:\.\d+)+)", loads)
++            versions += re.findall(r"cmd LC_BUILD_VERSION\s+cmdsize \d+\s+platform (?:1|MACOS)\s+minos (\d+(?:\.\d+)+)", loads)
++            minimums.extend(versions)
++            if not versions:
++                issues.append({"path": path.relative_to(root).as_posix(),
++                               "reason": "TARGET_ARCH_OR_MINIMUM_VERSION_MISSING"})
++            def expanded(value):
++                if value.startswith("@loader_path/"):
++                    return (path.parent / value.removeprefix("@loader_path/")).resolve()
++                if value.startswith("@executable_path/"):
++                    return (root / "runtime" / "bin" / value.removeprefix("@executable_path/")).resolve()
++                if value.startswith("/"):
++                    return Path(value).resolve()
++                return None
++            for dependency in dependencies:
++                if dependency.startswith(("/usr/lib/", "/System/Library/")):
++                    continue
++                if dependency.startswith(("@loader_path/", "@executable_path/")):
++                    resolved = expanded(dependency)
++                    if resolved is None or not resolved.is_relative_to(root) or not resolved.exists():
++                        issues.append({"path": path.relative_to(root).as_posix(), "dependency": dependency,
++                                       "reason": "LOADER_PATH_UNRESOLVED_OR_ESCAPE"})
++                elif dependency.startswith("@rpath/"):
++                    candidates = [base / dependency.removeprefix("@rpath/")
++                                  for value in rpaths if (base := expanded(value)) is not None]
++                    if not any(candidate.resolve().is_relative_to(root) and candidate.is_file() for candidate in candidates):
++                        issues.append({"path": path.relative_to(root).as_posix(), "dependency": dependency,
++                                       "reason": "RPATH_REQUIRES_REVIEW", "rpaths": rpaths})
++                else:
++                    issues.append({"path": path.relative_to(root).as_posix(), "dependency": dependency,
++                                   "reason": "NON_SYSTEM_ABSOLUTE_OR_UNSUPPORTED_PATH"})
++            report.append({"path": path.relative_to(root).as_posix(), "minimum_versions": versions,
++                           "dependencies": dependencies, "rpaths": rpaths, "image_id": image_id})
++    def version_tuple(value):
++        parts = tuple(map(int, value.split(".")))
++        return parts + (0,) * (3 - len(parts))
++    actual_minimum = max(minimums, key=version_tuple) if minimums else None
++    expected = source["minimum_os"].split()[-1]
++    if not report or not actual_minimum or version_tuple(actual_minimum) > version_tuple(expected):
++        issues.append({"reason": "ACTUAL_MINIMUM_MISSING_OR_EXCEEDS_TARGET", "actual_minimum": actual_minimum})
++    return {"status": "PASS" if not issues else "MACHO_REVIEW_REQUIRED", "architecture": architecture,
++            "method": "otool -arch TARGET -L and -l on every actual Mach-O file",
++            "binary_count": len(report), "actual_minimum_os": actual_minimum,
++            "issues": issues, "binaries": report}
++
++
++def build_target(target: str, source: dict, assets: Path, lock: Path, ca_file: str) -> None:
++    target_root = assets / target
++    manifest_path = target_root / "asset-manifest.json"
++    if manifest_path.exists():
++        old = json.loads(manifest_path.read_text(encoding="utf-8"))
++        if old["requirements_sha256"] != digest(lock) or old["runtime_source"] != source:
++            raise ValueError("EXISTING_ASSET_SOURCE_MISMATCH")
++        if asset_inventory(target_root) != old["files"]:
++            raise ValueError("EXISTING_ASSET_HASH_MISMATCH")
++        if target.startswith("macos-") and "macho_dependencies" not in old:
++            old["macho_dependencies"] = macho_dependencies(target_root, source)
++            manifest_path.write_text(json.dumps(old, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++        if target.startswith("macos-") and old["macho_dependencies"]["status"] != "PASS":
++            raise ValueError("MACHO_DEPENDENCY_REVIEW_REQUIRED")
++        print(target + " ASSETS_VERIFIED", flush=True)
++        return
++    target_root.mkdir(parents=True, exist_ok=True)
++    if (target_root / "runtime").exists() or (target_root / "packages").exists():
++        raise ValueError("INCOMPLETE_ASSET_TARGET_REQUIRES_NEW_DIRECTORY")
++    print(target + " DOWNLOADING_RUNTIME", flush=True)
++    archive = fetch_runtime(source, assets / "downloads", ca_file)
++    wheelhouse = target_root / "wheelhouse"
++    wheelhouse.mkdir(exist_ok=True)
++    print(target + " DOWNLOADING_LOCKED_WHEELS", flush=True)
++    prepare_wheels(lock, wheelhouse, source, ca_file)
++    modifications = extract_runtime(archive, source, target_root / "runtime")
++    wheels = extract_wheels(wheelhouse, target_root / "packages", lock_entries(lock))
++    manifest = {"schema_version": 1, "target": target, "python_version": "3.14.6",
++                "requirements_sha256": digest(lock), "runtime_source": source,
++                "runtime_modifications": modifications, "wheels": wheels,
++                "platform_minimum": source["minimum_os"], "files": asset_inventory(target_root)}
++    if target == "windows-x86_64":
++        manifest["windows_dependencies"] = windows_dependencies(target_root)
++        if manifest["windows_dependencies"]["unresolved_non_system_names"]:
++            (target_root / "windows-dependency-review.json").write_text(
++                json.dumps(manifest["windows_dependencies"], indent=2), encoding="utf-8")
++            raise ValueError("WINDOWS_DEPENDENCY_REVIEW_REQUIRED")
++    else:
++        manifest["macho_dependencies"] = macho_dependencies(target_root, source)
++        if manifest["macho_dependencies"]["status"] != "PASS":
++            (target_root / "macho-dependency-review.json").write_text(
++                json.dumps(manifest["macho_dependencies"], indent=2), encoding="utf-8")
++            raise ValueError("MACHO_DEPENDENCY_REVIEW_REQUIRED")
++    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
++    print(target + " ASSETS_PREPARED", flush=True)
++
++
++def main() -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    parser.add_argument("--assets-dir", type=Path, required=True)
++    parser.add_argument("--target", action="append", choices=("macos-arm64", "macos-x86_64", "windows-x86_64"))
++    args = parser.parse_args()
++    sources = json.loads((HERE / "runtime-sources.json").read_text(encoding="utf-8"))
++    assets = args.assets_dir.resolve()
++    assets.mkdir(parents=True, exist_ok=True)
++    (assets / "downloads").mkdir(exist_ok=True)
++    import certifi
++    for target in args.target or sources["targets"]:
++        build_target(target, sources["targets"][target], assets, HERE.parent / "requirements.lock", certifi.where())
++    return 0
++
++
++if __name__ == "__main__":
++    try:
++        raise SystemExit(main())
++    except (OSError, ValueError, RuntimeError, zipfile.BadZipFile, tarfile.TarError, subprocess.SubprocessError) as error:
++        # This script does not handle credentials. Still avoid arbitrary upstream bodies.
++        print("ASSET_PREPARATION_FAILED " + type(error).__name__ + ": " + (
++            str(error) if re.fullmatch(r"[A-Z][A-Z0-9_]+", str(error)) else "SEE_SAFE_BUILD_STAGE"
++        ), file=sys.stderr)
++        raise SystemExit(1) from None
+--- /dev/null
++++ b/portable/runtime-sources.json
+@@ -0,0 +1,49 @@
++{
++  "schema_version": 1,
++  "python_version": "3.14.6",
++  "sources_checked_on": "2026-09-06",
++  "source_policy": "Fixed HTTPS upstream release URLs and SHA-256; no system Python installation and no unpinned runtime fallback.",
++  "targets": {
++    "macos-arm64": {
++      "platform": "macosx_11_0_arm64",
++      "minimum_os": "macOS 11.0",
++      "architecture": "arm64",
++      "runtime_kind": "python-build-standalone-install-only-stripped",
++      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260804/cpython-3.14.6%2B20260804-aarch64-apple-darwin-install_only_stripped.tar.gz",
++      "sha256": "e0d4e5066aef3248c22e08a07546bfd5edeaca904c91fadc296be720998ec2ec",
++      "size": 26008022,
++      "archive_root": "python",
++      "executable": "bin/python3.14",
++      "verification_source": "https://api.github.com/repos/astral-sh/python-build-standalone/releases/tags/20260804"
++    },
++    "macos-x86_64": {
++      "platform": "macosx_10_15_x86_64",
++      "minimum_os": "macOS 10.15",
++      "architecture": "x86_64",
++      "runtime_kind": "python-build-standalone-install-only-stripped",
++      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260804/cpython-3.14.6%2B20260804-x86_64-apple-darwin-install_only_stripped.tar.gz",
++      "sha256": "78ded4c4f0b6a931240f09bd20608533bb40dd71c1ff953c7267359075ca8b16",
++      "size": 25997980,
++      "archive_root": "python",
++      "executable": "bin/python3.14",
++      "verification_source": "https://api.github.com/repos/astral-sh/python-build-standalone/releases/tags/20260804"
++    },
++    "windows-x86_64": {
++      "platform": "win_amd64",
++      "minimum_os": "Windows 10",
++      "architecture": "AMD64",
++      "runtime_kind": "python-org-embeddable",
++      "url": "https://www.python.org/ftp/python/3.14.6/python-3.14.6-embed-amd64.zip",
++      "sha256": "df901e84a896ff1ee720ad03377e0c8d8c2244fda79808aeeaff6316df1cb75c",
++      "archive_root": ".",
++      "executable": "python.exe",
++      "verification_source": "https://www.python.org/ftp/python/3.14.6/python-3.14.6-embed-amd64.zip.spdx.json",
++      "live_validation_state": "WINDOWS_E2E_UNVERIFIED"
++    }
++  },
++  "licenses": {
++    "cpython": "https://docs.python.org/3.14/license.html",
++    "python_build_standalone": "https://github.com/astral-sh/python-build-standalone/blob/20260804/python-licenses.rst",
++    "policy": "Retain all runtime license files and wheel dist-info license/NOTICE files; distribution is private research use, not external publication. Runtime search-path customization is recorded in the asset manifest."
++  }
++}
+--- /dev/null
++++ b/portable/tests/test_launcher.py
+@@ -0,0 +1,335 @@
++from __future__ import annotations
++
++import contextlib
++import getpass
++import hashlib
++import importlib.util
++import io
++import json
++import os
++import shutil
++import subprocess
++import sys
++import tempfile
++import types
++import unittest
++import warnings
++from pathlib import Path
++from unittest import mock
++
++
++ROOT = Path(__file__).resolve().parents[1]
++SPEC = importlib.util.spec_from_file_location("portable_launcher_under_test", ROOT / "launcher.py")
++assert SPEC is not None and SPEC.loader is not None
++launcher = importlib.util.module_from_spec(SPEC)
++SPEC.loader.exec_module(launcher)
++CANARY = "SYNTHETIC_PORTABLE_CANARY_" + "NOT_A_REAL_TOKEN"
++
++
++class PackageTests(unittest.TestCase):
++    def fixture(self, root):
++        for relative in ("launcher.py", "app/run_dashboard.py", "app/PROJECT_SPEC_V4.json", "seed-data/latest_run.json"):
++            path = root / relative
++            path.parent.mkdir(parents=True, exist_ok=True)
++            path.write_text("fixture\n", encoding="utf-8")
++        files = [{"path": path.relative_to(root).as_posix(), "bytes": path.stat().st_size,
++                  "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
++                 for path in sorted(root.rglob("*")) if path.is_file()]
++        manifest = {"schema_version": "swivd-portable-v1", "target": "macos-arm64", "python_version": "3.14.6", "files": files}
++        (root / "package-manifest.json").write_text(json.dumps(manifest), encoding="utf-8")
++        return manifest
++
++    def test_complete_manifest_data_and_finder_metadata_are_readonly(self):
++        with tempfile.TemporaryDirectory(prefix="便携 包 & ! ") as temp:
++            root = Path(temp)
++            self.fixture(root)
++            (root / "data").mkdir()
++            (root / "data" / "user-state").write_text("keep")
++            (root / ".DS_Store").write_bytes(b"finder")
++            before = {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()}
++            self.assertEqual(launcher.verify_package(root)["target"], "macos-arm64")
++            self.assertEqual(before, {p.relative_to(root): p.read_bytes() for p in root.rglob("*") if p.is_file()})
++
++    def test_tamper_and_unlisted_file_fail(self):
++        for kind in ("tamper", "unlisted", "missing"):
++            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
++                root = Path(temp)
++                self.fixture(root)
++                if kind == "tamper":
++                    (root / "launcher.py").write_text("changed")
++                elif kind == "unlisted":
++                    (root / "extra.py").write_text("unapproved")
++                else:
++                    (root / "launcher.py").unlink()
++                with self.assertRaises(launcher.PortableError):
++                    launcher.verify_package(root)
++
++    def test_windows_junction_is_rejected_even_without_symlink_flag(self):
++        with tempfile.TemporaryDirectory() as temp, \
++                mock.patch.object(Path, "is_symlink", return_value=False), \
++                mock.patch.object(Path, "is_junction", return_value=True):
++            self.assertTrue(launcher._is_link(Path(temp)))
++            with self.assertRaisesRegex(launcher.PortableError, "DIRECTORY_UNSAFE"):
++                launcher._regular_tree(Path(temp))
++
++    def test_finder_metadata_inside_immutable_run_is_rejected(self):
++        for prefix in ("seed-data/runs/EXAMPLE", "app/output/runs/EXAMPLE"):
++            with self.subTest(prefix=prefix), tempfile.TemporaryDirectory() as temp:
++                root = Path(temp)
++                self.fixture(root)
++                path = root / prefix / ".DS_Store"
++                path.parent.mkdir(parents=True)
++                path.write_bytes(b"finder")
++                with self.assertRaisesRegex(launcher.PortableError, "SNAPSHOT_METADATA_UNEXPECTED"):
++                    launcher.verify_package(root)
++
++    def test_traversal_duplicate_and_invalid_hash_fail(self):
++        for bad in ("../secret", "/secret", "C:/secret", "a\\b", "a//b", "a/./b", "data/user", "package-manifest.json"):
++            with self.subTest(bad=bad), self.assertRaisesRegex(launcher.PortableError, "PACKAGE_PATH_INVALID"):
++                launcher._safe_path(bad)
++        for kind in ("duplicate", "hash", "bool_size"):
++            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
++                root = Path(temp)
++                manifest = self.fixture(root)
++                if kind == "duplicate":
++                    manifest["files"].append(manifest["files"][0])
++                elif kind == "hash":
++                    manifest["files"][0]["sha256"] = CANARY
++                else:
++                    manifest["files"][0]["bytes"] = True
++                (root / "package-manifest.json").write_text(json.dumps(manifest))
++                with self.assertRaisesRegex(launcher.PortableError, "PACKAGE_MANIFEST_INVALID"):
++                    launcher.verify_package(root)
++
++    @unittest.skipIf(os.name == "nt", "Windows symlinks require host privileges")
++    def test_package_and_data_symlink_fail(self):
++        for destination in ("data", "app"):
++            with self.subTest(destination=destination), tempfile.TemporaryDirectory() as temp:
++                root = Path(temp)
++                self.fixture(root)
++                external = root.parent / (root.name + "-not-created")
++                if destination == "app":
++                    shutil.rmtree(root / "app")
++                (root / destination).symlink_to(external, target_is_directory=True)
++                with self.assertRaisesRegex(launcher.PortableError, "SYMLINK_FORBIDDEN"):
++                    launcher.verify_package(root)
++
++
++class CredentialTests(unittest.TestCase):
++    def token_context(self, value=None):
++        return mock.patch.dict(sys.modules, {"tushare": types.SimpleNamespace(get_token=mock.Mock(return_value=value))})
++
++    def test_environment_precedes_sdk_and_stays_out_of_output(self):
++        out = io.StringIO()
++        with mock.patch.dict(os.environ, {"TUSHARE_TOKEN": CANARY}, clear=True), \
++                self.token_context() as modules, contextlib.redirect_stdout(out), contextlib.redirect_stderr(out), \
++                mock.patch.object(getpass, "getpass", side_effect=AssertionError("prompt forbidden")):
++            self.assertEqual(launcher.configure_token(interactive=True), "ENVIRONMENT")
++            modules["tushare"].get_token.assert_not_called()
++            self.assertEqual(os.environ["TUSHARE_TOKEN"], CANARY)
++        self.assertEqual(out.getvalue(), "")
++
++    def test_sdk_output_and_errors_are_suppressed(self):
++        def noisy():
++            print(CANARY)
++            print(CANARY, file=sys.stderr)
++            return CANARY
++        for fail in (False, True):
++            getter = mock.Mock(side_effect=RuntimeError(CANARY) if fail else noisy)
++            output = io.StringIO()
++            with self.subTest(fail=fail), mock.patch.dict(os.environ, {}, clear=True), \
++                    mock.patch.dict(sys.modules, {"tushare": types.SimpleNamespace(get_token=getter)}), \
++                    contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
++                if fail:
++                    with self.assertRaisesRegex(launcher.PortableError, "TOKEN_LOOKUP_FAILED"):
++                        launcher.configure_token(interactive=False)
++                else:
++                    self.assertEqual(launcher.configure_token(interactive=False), "TUSHARE_LOOKUP")
++                    self.assertEqual(os.environ["TUSHARE_TOKEN"], CANARY)
++            self.assertNotIn(CANARY, output.getvalue())
++
++    def test_missing_noninteractive_token_never_prompts(self):
++        with mock.patch.dict(os.environ, {}, clear=True), self.token_context(), \
++                mock.patch.object(getpass, "getpass", side_effect=AssertionError("prompt forbidden")):
++            self.assertEqual(launcher.configure_token(interactive=False), "NONE")
++            self.assertNotIn("TUSHARE_TOKEN", os.environ)
++
++    def test_prompt_token_is_process_only_and_empty_is_readonly(self):
++        for token, source in ((CANARY, "SESSION_INPUT"), ("", "NONE")):
++            with self.subTest(source=source), mock.patch.dict(os.environ, {}, clear=True), self.token_context(), \
++                    mock.patch.object(sys.stdin, "isatty", return_value=True), \
++                    mock.patch.object(sys.stderr, "isatty", return_value=True), \
++                    mock.patch.object(getpass, "getpass", return_value=token), \
++                    mock.patch.object(Path, "write_text", side_effect=AssertionError("token write forbidden")):
++                self.assertEqual(launcher.configure_token(interactive=True), source)
++                self.assertEqual(os.environ.get("TUSHARE_TOKEN", ""), token)
++
++    def test_missing_tty_and_noecho_downgrade_are_rejected(self):
++        def unsafe_prompt(_prompt):
++            warnings.warn("no safe terminal " + CANARY, getpass.GetPassWarning)
++            return CANARY
++        for tty, action in ((False, AssertionError("must not prompt")), (True, unsafe_prompt), (True, EOFError(CANARY))):
++            with self.subTest(tty=tty, action=type(action).__name__), mock.patch.dict(os.environ, {}, clear=True), \
++                    self.token_context(), mock.patch.object(sys.stdin, "isatty", return_value=tty), \
++                    mock.patch.object(sys.stderr, "isatty", return_value=tty), \
++                    mock.patch.object(getpass, "getpass", side_effect=action):
++                with self.assertRaisesRegex(launcher.PortableError, "TOKEN_TERMINAL_REQUIRED"):
++                    launcher.configure_token(interactive=True)
++                self.assertNotIn("TUSHARE_TOKEN", os.environ)
++
++    def test_forbidden_token_characters_do_not_echo(self):
++        for token in (CANARY + "\nX", CANARY + "\rX", CANARY + "\x00", CANARY + "\n"):
++            with self.subTest(token=repr(token)), self.assertRaisesRegex(launcher.PortableError, "TOKEN_INVALID") as raised:
++                launcher._check_token(token)
++            self.assertNotIn(CANARY, str(raised.exception))
++
++    def test_cli_and_argument_errors_never_echo_secrets(self):
++        for exception in (ValueError(CANARY), KeyboardInterrupt()):
++            output = io.StringIO()
++            with mock.patch.object(launcher, "main", side_effect=exception), contextlib.redirect_stderr(output):
++                self.assertIn(launcher.cli([]), {1, 130})
++            self.assertNotIn(CANARY, output.getvalue())
++        output = io.StringIO()
++        with contextlib.redirect_stderr(output):
++            self.assertEqual(launcher.cli(["--token", CANARY]), 1)
++        self.assertNotIn(CANARY, output.getvalue())
++
++
++class DataTests(unittest.TestCase):
++    def test_seed_import_is_atomic_and_existing_data_not_replaced(self):
++        with tempfile.TemporaryDirectory(prefix="迁移 数据 ") as temp:
++            root = Path(temp)
++            (root / "seed-data").mkdir()
++            (root / "seed-data" / "fixture").write_text("seed")
++            (root / "seed-data" / ".DS_Store").write_bytes(b"finder")
++            with mock.patch.object(launcher, "validate_state", return_value={"state_verified": True}), \
++                    mock.patch.object(launcher, "_recover_state"):
++                state = launcher.prepare_data(root)
++                self.assertEqual(state, root / "data" / "state")
++                self.assertEqual((state / "fixture").read_text(), "seed")
++                self.assertFalse((state / ".DS_Store").exists())
++                (state / "fixture").write_text("user changes")
++                self.assertEqual(launcher.prepare_data(root), state)
++                self.assertEqual((state / "fixture").read_text(), "user changes")
++                self.assertFalse(list((root / "data").glob(".import-*")))
++
++    def test_failed_import_never_creates_current_state(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            (root / "seed-data").mkdir()
++            with mock.patch.object(launcher, "validate_state", side_effect=launcher.PortableError("DATA_VALIDATION_FAILED")):
++                with self.assertRaisesRegex(launcher.PortableError, "DATA_VALIDATION_FAILED"):
++                    launcher.prepare_data(root)
++            self.assertFalse((root / "data" / "state").exists())
++            self.assertEqual(len(list((root / "data").glob(".import-*"))), 1)
++
++    def test_foreign_data_content_and_invalid_existing_state_fail_closed(self):
++        for kind in ("foreign", "badstate"):
++            with self.subTest(kind=kind), tempfile.TemporaryDirectory() as temp:
++                root = Path(temp)
++                (root / "data").mkdir()
++                marker = root / "data" / ("user-file" if kind == "foreign" else "state")
++                marker.write_text("do not modify")
++                with self.assertRaises(launcher.PortableError):
++                    launcher.prepare_data(root)
++                self.assertEqual(marker.read_text(), "do not modify")
++
++    def test_real_import_lock_conflict_and_release(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            with launcher._import_lock(root):
++                with self.assertRaisesRegex(launcher.PortableError, "DATA_IMPORT_BUSY"):
++                    with launcher._import_lock(root):
++                        self.fail("second writer must not acquire")
++            with launcher._import_lock(root):
++                pass
++
++
++class EntrypointTests(unittest.TestCase):
++    def test_runtime_rejects_system_python_wrong_platform_and_nonisolated_mode(self):
++        with tempfile.TemporaryDirectory() as temp:
++            root = Path(temp)
++            runtime = root / "runtime" / "bin" / "python3.14"
++            cases = (("/system/python", "arm64", True, "BUNDLED_PYTHON_REQUIRED"),
++                     (str(runtime), "x86_64", True, "PLATFORM_MISMATCH"),
++                     (str(runtime), "arm64", False, "ISOLATED_PYTHON_REQUIRED"))
++            for executable, machine, isolated, message in cases:
++                with self.subTest(message=message), mock.patch.object(launcher.platform, "system", return_value="Darwin"), \
++                        mock.patch.object(launcher.platform, "machine", return_value=machine), \
++                        mock.patch.object(sys, "executable", executable), mock.patch.object(sys, "version_info", (3, 14, 6)), \
++                        mock.patch.object(sys, "flags", types.SimpleNamespace(isolated=isolated)), \
++                        mock.patch.object(sys, "dont_write_bytecode", True):
++                    with self.assertRaisesRegex(launcher.PortableError, message):
++                        launcher.verify_runtime(root, {"target": "macos-arm64"})
++
++    def test_verify_and_doctor_do_not_prompt_initialize_or_serve(self):
++        for command in ("verify", "doctor", "self-test"):
++            with self.subTest(command=command), tempfile.TemporaryDirectory() as temp:
++                root = Path(temp)
++                entry = types.SimpleNamespace(_doctor=mock.Mock(return_value={"token_configured": False}), main=mock.Mock())
++                with mock.patch.object(launcher, "verify_package", return_value={"target": "macos-arm64"}), \
++                        mock.patch.object(launcher, "verify_runtime"), mock.patch.object(launcher, "_load_app", return_value=entry), \
++                        mock.patch.object(launcher, "validate_state", return_value={"state_verified": True}), \
++                        mock.patch.object(launcher, "configure_token", side_effect=AssertionError("token prompt")), \
++                        mock.patch.object(launcher, "prepare_data", side_effect=AssertionError("data write")), \
++                        contextlib.redirect_stdout(io.StringIO()):
++                    self.assertEqual(launcher.main([command], root=root), 0)
++                entry.main.assert_not_called()
++                self.assertEqual(list(root.iterdir()), [])
++
++    def test_corrupted_package_is_rejected_before_app_import(self):
++        with tempfile.TemporaryDirectory() as temp, \
++                mock.patch.object(launcher, "_load_app", side_effect=AssertionError("unverified import")):
++            with self.assertRaisesRegex(launcher.PortableError, "PACKAGE_MANIFEST_MISSING"):
++                launcher.main(["verify"], root=Path(temp))
++
++    def test_only_loopback_port_is_probed(self):
++        with mock.patch.object(socket := launcher.socket, "socket") as factory:
++            launcher._check_port(8765)
++            factory.return_value.__enter__.return_value.bind.assert_called_once_with(("127.0.0.1", 8765))
++        for port in (0, -1, 65536):
++            with self.assertRaisesRegex(launcher.PortableError, "INVALID_PORT"):
++                launcher._check_port(port)
++
++    @unittest.skipIf(os.name == "nt", "POSIX shell behavior; Windows E2E is separate")
++    def test_mac_launcher_uses_only_bundled_interpreter_and_quotes_path(self):
++        with tempfile.TemporaryDirectory(prefix="Mac 包 & ! ") as temp:
++            root = Path(temp)
++            shutil.copyfile(ROOT / "Start-Mac.command", root / "Start-Mac.command")
++            executable = root / "runtime" / "bin" / "python3.14"
++            executable.parent.mkdir(parents=True)
++            executable.write_text("#!/bin/sh\nfor value in \"$@\"; do printf '%s\\n' \"$value\"; done\n")
++            executable.chmod(0o700)
++            result = subprocess.run(["/bin/sh", str(root / "Start-Mac.command"), "doctor", "--port", "8877"],
++                                    cwd=root.parent, env={"PATH": "/does-not-exist"}, capture_output=True, text=True, timeout=10)
++            self.assertEqual(result.returncode, 0, result.stderr)
++            self.assertEqual(result.stdout.splitlines(), ["-I", "-B", "-X", "utf8", str(root.resolve() / "launcher.py"), "doctor", "--port", "8877"])
++            executable.unlink()
++            result = subprocess.run(["/bin/sh", str(root / "Start-Mac.command")], capture_output=True, text=True, timeout=10)
++            self.assertEqual(result.returncode, 1)
++            self.assertIn("BUNDLED_PYTHON_UNAVAILABLE", result.stderr)
++
++    def test_windows_script_does_not_install_save_or_fall_back(self):
++        script = (ROOT / "Start-Windows.cmd").read_text(encoding="utf-8")
++        self.assertIn("DisableDelayedExpansion", script)
++        self.assertIn('runtime\\python.exe" -I -B -X utf8', script)
++        for forbidden in ("setx", "pip install", "py -", "taskkill", "TUSHARE_TOKEN", "start http"):
++            self.assertNotIn(forbidden, script)
++
++    def test_explicit_utf8_applies_to_pipes_despite_environment_encoding(self):
++        # Native CLI flag proof, not a substitute for Windows-host acceptance.
++        command = [sys.executable, "-I", "-B", "-X", "utf8", "-c",
++                   "import json,sys; print(json.dumps({'mode':sys.flags.utf8_mode,"
++                   "'encoding':sys.stdout.encoding,'text':'中文验收'},ensure_ascii=False))"]
++        environment = {"LC_ALL": "C", "LANG": "C", "PYTHONUTF8": "0", "PYTHONIOENCODING": "ascii"}
++        for key in ("SYSTEMROOT", "WINDIR"):
++            if key in os.environ:
++                environment[key] = os.environ[key]
++        result = subprocess.run(command, env=environment, capture_output=True, timeout=15)
++        self.assertEqual(result.returncode, 0, result.stderr)
++        payload = json.loads(result.stdout.decode("utf-8"))
++        self.assertEqual(payload, {"mode": 1, "encoding": "utf-8", "text": "中文验收"})
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/portable/tests/test_package.py
+@@ -0,0 +1,290 @@
++"""Temp-only adversarial tests for the independent delivery verifier."""
++
++import hashlib
++import importlib.util
++import json
++from pathlib import Path
++import tempfile
++import unittest
++from unittest import mock
++
++
++SCRIPT = Path(__file__).resolve().parents[1] / "verify_delivery.py"
++SPEC = importlib.util.spec_from_file_location("swivd_delivery_verifier_tests", SCRIPT)
++verifier = importlib.util.module_from_spec(SPEC)
++SPEC.loader.exec_module(verifier)
++BUILD_SPEC = importlib.util.spec_from_file_location("swivd_portable_builder_tests", SCRIPT.with_name("build.py"))
++builder = importlib.util.module_from_spec(BUILD_SPEC)
++BUILD_SPEC.loader.exec_module(builder)
++
++
++class DeliveryVerifierTests(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory(prefix="swivd-package-test-")
++        self.addCleanup(self.temporary.cleanup)
++        self.root = Path(self.temporary.name) / "中文 空格 &!"
++        self.root.mkdir()
++        (self.root / "runtime").mkdir()
++        (self.root / "runtime/python.exe").write_bytes(b"fixture executable is never executed")
++        self.record = {"path": "runtime/python.exe", "bytes": 36, "sha256": ""}
++        payload = (self.root / self.record["path"]).read_bytes()
++        self.record.update(bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest())
++        self.manifest = {"python_executable": "runtime/python.exe", "files": [self.record]}
++        self.write_manifest()
++
++    def write_manifest(self):
++        (self.root / "package-manifest.json").write_text(json.dumps(self.manifest), encoding="utf-8")
++
++    def test_exact_inventory_accepts_unicode_metacharacter_path(self):
++        self.assertEqual(verifier.verify_inventory(self.root), self.manifest)
++
++    def test_modified_file_is_rejected(self):
++        (self.root / "runtime/python.exe").write_bytes(b"changed")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "PACKAGE_FILE_CHANGED"):
++            verifier.verify_inventory(self.root)
++
++    def test_extra_static_file_is_rejected(self):
++        (self.root / "extra.txt").write_text("not bound", encoding="utf-8")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "PACKAGE_INVENTORY_MISMATCH"):
++            verifier.verify_inventory(self.root)
++
++    def test_existing_mutable_data_is_not_a_static_input(self):
++        (self.root / "data").mkdir()
++        (self.root / "data/user-content.txt").write_text("do not modify", encoding="utf-8")
++        self.assertEqual(verifier.verify_inventory(self.root), self.manifest)
++
++    def test_finder_metadata_does_not_become_a_static_input(self):
++        (self.root / ".DS_Store").write_bytes(b"Finder metadata")
++        self.assertEqual(verifier.verify_inventory(self.root), self.manifest)
++
++    def test_finder_metadata_inside_frozen_run_is_rejected(self):
++        frozen = self.root / "seed-data/runs/example"
++        frozen.mkdir(parents=True)
++        (frozen / ".DS_Store").write_bytes(b"not part of snapshot")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "SNAPSHOT_METADATA_UNEXPECTED"):
++            verifier.verify_inventory(self.root)
++
++    def test_ntfs_junction_root_data_and_file_ancestor_are_rejected(self):
++        # Exercise Windows junction semantics on every host without creating
++        # an actual reparse point or requiring Windows privileges.
++        data = self.root / "data"
++        data.mkdir()
++        for junction in (self.root, data, self.root / "runtime"):
++            with self.subTest(junction=junction.name), mock.patch.object(Path, "is_junction", lambda path: path == junction, create=True):
++                with self.assertRaises(verifier.AcceptanceError):
++                    verifier.verify_inventory(self.root)
++
++    def test_data_container_symlink_is_rejected(self):
++        outside = self.root.parent / "outside-data"
++        outside.mkdir()
++        try:
++            (self.root / "data").symlink_to(outside, target_is_directory=True)
++        except (OSError, NotImplementedError):
++            self.skipTest("Host does not permit test symlinks")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "PACKAGE_SYMLINK_FORBIDDEN"):
++            verifier.verify_inventory(self.root)
++
++    def test_pointer_result_is_already_a_run_directory(self):
++        run = self.root / "runs" / "SWIVD2-RUN-20260904-001"
++        run.mkdir(parents=True)
++        pointer = {"run_id": run.name}
++        self.assertEqual(verifier.seed_location((run, pointer)), (run, pointer))
++        with self.assertRaisesRegex(verifier.AcceptanceError, "SEED_POINTER_LOCATION_MISMATCH"):
++            verifier.seed_location((run.parent, pointer))
++
++    def test_traversal_absolute_drive_and_ambiguous_paths_rejected(self):
++        for value in ("../bad", "/bad", "C:/bad", "a\\b", "a//b", "a/./b", "a/../b", ""):
++            with self.subTest(value=value), self.assertRaises(verifier.AcceptanceError):
++                verifier.safe_path(self.root, value)
++
++    def test_duplicate_record_rejected(self):
++        self.manifest["files"].append(dict(self.record))
++        self.write_manifest()
++        with self.assertRaisesRegex(verifier.AcceptanceError, "PACKAGE_FILE_DUPLICATE"):
++            verifier.verify_inventory(self.root)
++
++    def test_unbound_runtime_path_rejected_without_system_fallback(self):
++        self.manifest["python_executable"] = "system-python"
++        self.write_manifest()
++        with self.assertRaisesRegex(verifier.AcceptanceError, "PACKAGE_PYTHON_NOT_BOUND"):
++            verifier.verify_inventory(self.root)
++
++    def test_packaged_worker_explicitly_enables_utf8_in_isolated_mode(self):
++        completed = mock.Mock(returncode=0, stdout='{"status":"PASS"}')
++        with mock.patch.object(verifier.subprocess, "run", return_value=completed) as process:
++            self.assertEqual(verifier.verify_delivery(self.root)["status"], "PASS")
++        argv = process.call_args.args[0]
++        self.assertEqual(argv[1:5], ["-I", "-B", "-X", "utf8"])
++        self.assertNotIn("TUSHARE_TOKEN", process.call_args.kwargs["env"])
++        self.assertFalse(process.call_args.kwargs.get("shell", False))
++
++    def test_symlink_parent_rejected(self):
++        target = self.root / "outside"
++        target.mkdir()
++        try:
++            (self.root / "link").symlink_to(target, target_is_directory=True)
++        except (OSError, NotImplementedError):
++            self.skipTest("Host does not permit test symlinks")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "PACKAGE_SYMLINK_FORBIDDEN"):
++            verifier.safe_path(self.root, "link/file.txt")
++
++    def test_network_guard_denies_dns_and_external_ipv4_ipv6(self):
++        for event, arguments in (
++            ("socket.connect", (None, ("8.8.8.8", 443))),
++            ("socket.connect", (None, ("2001:4860:4860::8888", 443))),
++            ("socket.bind", (None, ("0.0.0.0", 0))),
++            ("socket.getaddrinfo", ("api.tushare.pro", 443)),
++            ("socket.gethostbyname", ("localhost",)),
++            ("socket.sendto", (None, b"payload", ("8.8.8.8", 53))),
++        ):
++            with self.subTest(event=event, arguments=arguments), self.assertRaises(verifier.AcceptanceError):
++                verifier.network_guard(event, arguments)
++        verifier.network_guard("socket.connect", (None, ("127.0.0.1", 8765)))
++        verifier.network_guard("socket.getaddrinfo", ("127.0.0.1", 8765))
++        verifier.network_guard("socket.bind", (None, ("::1", 0)))
++
++    def test_derived_comparison_rejects_missing_and_changed_files(self):
++        original, rebuilt = self.root / "original", self.root / "rebuilt"
++        for root in (original, rebuilt):
++            (root / "tables").mkdir(parents=True)
++            (root / "tables/example.csv").write_bytes(b"same")
++        self.assertEqual(verifier.compare_derived(original, rebuilt), 1)
++        (rebuilt / "tables/example.csv").write_bytes(b"different")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "REBUILD_BYTES_MISMATCH"):
++            verifier.compare_derived(original, rebuilt)
++        (original / "tables/missing.csv").write_bytes(b"missing")
++        with self.assertRaisesRegex(verifier.AcceptanceError, "REBUILD_FILE_SET_MISMATCH"):
++            verifier.compare_derived(original, rebuilt)
++
++
++class DeliveryBuilderTests(unittest.TestCase):
++    def setUp(self):
++        self.temporary = tempfile.TemporaryDirectory(prefix="swivd-builder-test-")
++        self.addCleanup(self.temporary.cleanup)
++        self.root = Path(self.temporary.name)
++
++    def test_traversal_and_windows_invalid_names_are_rejected(self):
++        for value in ("../escape", "/absolute", "C:/drive", "bad\\name", "a//b", "name.", "bad:name", "CON", "aux.txt", "NUL.dat", "COM1.log", "LPT9", "folder/PRN"):
++            with self.subTest(value=value), self.assertRaises(ValueError):
++                builder.safe_path(self.root, value)
++
++    def test_record_requires_existing_exact_source_bytes(self):
++        payload = b"frozen source"
++        record = {"path": "source.py", "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}
++        with self.assertRaises(ValueError):
++            builder.verify_record(self.root, record)
++        (self.root / "source.py").write_bytes(payload)
++        builder.verify_record(self.root, record)
++        (self.root / "source.py").write_bytes(b"drift")
++        with self.assertRaises(ValueError):
++            builder.verify_record(self.root, record)
++
++    def test_inventory_rejects_windows_device_name(self):
++        # A reserved device name cannot be created as an ordinary Windows file.
++        import os
++        if os.name == "nt":
++            self.skipTest("Windows filesystem already rejects this fixture")
++        (self.root / "CON.txt").write_text("not portable", encoding="utf-8")
++        with self.assertRaises(ValueError):
++            builder.inventory(self.root)
++
++    def test_source_root_symlink_is_rejected(self):
++        original = self.root / "original"
++        original.mkdir()
++        (original / "file.txt").write_text("test", encoding="utf-8")
++        link = self.root / "link"
++        try:
++            link.symlink_to(original, target_is_directory=True)
++        except (OSError, NotImplementedError):
++            self.skipTest("Host does not permit test symlinks")
++        with self.assertRaises(ValueError):
++            builder.copy_tree(link, self.root / "destination")
++
++    def test_asset_inventory_checked_before_any_output_is_created(self):
++        target = "windows-x86_64"
++        assets = self.root / "assets"
++        asset = assets / target
++        (asset / "runtime").mkdir(parents=True)
++        (asset / "packages").mkdir()
++        (asset / "runtime/python.exe").write_bytes(b"not executed")
++        (asset / "asset-manifest.json").write_text(json.dumps({"target": target, "python_version": "3.14.6", "files": []}), encoding="utf-8")
++        output = self.root / "output"
++        with self.assertRaisesRegex(ValueError, "ASSET_INVENTORY_MISMATCH"):
++            builder.build(project=self.root / "missing-project", seed_data=self.root / "missing-seed", assets=assets, output_dir=output, target=target)
++        self.assertFalse(output.exists())
++
++    def self_consistent_asset(self):
++        target = "windows-x86_64"
++        assets, project = self.root / "assets", self.root / "project"
++        asset = assets / target
++        (asset / "runtime").mkdir(parents=True)
++        (asset / "packages").mkdir()
++        payload = b"hash-consistent inert runtime fixture"
++        (asset / "runtime/python.exe").write_bytes(payload)
++        project.mkdir()
++        (project / "requirements.lock").write_bytes(b"frozen lock fixture")
++        metadata = {
++            "target": target, "python_version": "3.14.6",
++            "requirements_sha256": builder.sha(project / "requirements.lock"),
++            "runtime_source": builder.read(builder.HERE / "runtime-sources.json")["targets"][target],
++            "files": [{"path": "runtime/python.exe", "bytes": len(payload), "sha256": hashlib.sha256(payload).hexdigest()}],
++        }
++        return target, assets, asset, project, metadata
++
++    def test_hash_consistent_asset_with_wrong_dependency_lock_is_rejected(self):
++        target, assets, asset, project, metadata = self.self_consistent_asset()
++        metadata["requirements_sha256"] = "0" * 64
++        (asset / "asset-manifest.json").write_text(json.dumps(metadata), encoding="utf-8")
++        output = self.root / "output"
++        with mock.patch.object(builder, "source_and_seed") as source_copy:
++            with self.assertRaisesRegex(ValueError, "ASSET_LOCK_MISMATCH"):
++                builder.build(project=project, seed_data=self.root / "missing-seed", assets=assets, output_dir=output, target=target)
++            source_copy.assert_not_called()
++        self.assertFalse(output.exists())
++
++    def test_hash_consistent_asset_with_wrong_upstream_identity_is_rejected(self):
++        target, assets, asset, project, metadata = self.self_consistent_asset()
++        metadata["runtime_source"] = {**metadata["runtime_source"], "architecture": "UNAPPROVED_ARCHITECTURE"}
++        (asset / "asset-manifest.json").write_text(json.dumps(metadata), encoding="utf-8")
++        output = self.root / "output"
++        with mock.patch.object(builder, "source_and_seed") as source_copy:
++            with self.assertRaisesRegex(ValueError, "ASSET_UPSTREAM_MISMATCH"):
++                builder.build(project=project, seed_data=self.root / "missing-seed", assets=assets, output_dir=output, target=target)
++            source_copy.assert_not_called()
++        self.assertFalse(output.exists())
++
++    def test_hash_lock_source_consistent_asset_requires_native_dependency_review(self):
++        target, assets, asset, project, metadata = self.self_consistent_asset()
++        (asset / "asset-manifest.json").write_text(json.dumps(metadata), encoding="utf-8")
++        output = self.root / "output"
++        with mock.patch.object(builder, "source_and_seed") as source_copy:
++            with self.assertRaisesRegex(ValueError, "ASSET_NATIVE_DEPENDENCIES_UNVERIFIED"):
++                builder.build(project=project, seed_data=self.root / "missing-seed", assets=assets, output_dir=output, target=target)
++            source_copy.assert_not_called()
++        self.assertFalse(output.exists())
++
++    def test_extra_seed_file_is_not_silently_distributed(self):
++        project, seed, output = self.root / "project", self.root / "seed", self.root / "output"
++        project.mkdir()
++        output.mkdir()
++        (project / "PROJECT_SPEC.json").write_text("{}", encoding="utf-8")
++        seed_run = seed / "runs" / builder.SEED_ID
++        seed_run.mkdir(parents=True)
++        seed_manifest = {"purpose": "UPDATE_LATEST", "decision_eligible": False, "production_approved": False, "artifacts": [], "source_files": []}
++        (seed_run / "manifest.json").write_text(json.dumps(seed_manifest), encoding="utf-8")
++        (seed_run / "SHA256SUMS").write_text("fixture", encoding="utf-8")
++        (seed_run / "untracked-user-file.txt").write_text("must not distribute", encoding="utf-8")
++        legacy = project / "output/runs" / builder.LEGACY_ID
++        legacy.mkdir(parents=True)
++        (legacy / "manifest.json").write_text(json.dumps({"artifacts": []}), encoding="utf-8")
++        (legacy / "SHA256SUMS").write_text("fixture", encoding="utf-8")
++        seed_sha, legacy_sha = builder.sha(seed_run / "manifest.json"), builder.sha(legacy / "manifest.json")
++        (seed / "latest_run.json").write_text(json.dumps({"run_id": builder.SEED_ID, "target_sha256": seed_sha}), encoding="utf-8")
++        (seed / "run_ledger.ndjson").write_text(json.dumps({"run_id": builder.SEED_ID, "event": "RUN_SUCCEEDED"}) + "\n", encoding="utf-8")
++        with mock.patch.object(builder, "SEED_SHA", seed_sha), mock.patch.object(builder, "LEGACY_SHA", legacy_sha):
++            with self.assertRaises(ValueError):
++                builder.source_and_seed(project, seed, output)
++
++
++if __name__ == "__main__":
++    unittest.main()
+--- /dev/null
++++ b/portable/verify_delivery.py
+@@ -0,0 +1,338 @@
++#!/usr/bin/env python3
++"""Independent, credential-free native verification of an extracted delivery.
++
++The controller copies only the packaged static files to a system temporary path
++containing Chinese text, spaces and shell metacharacters.  The packaged Python,
++never a fallback system interpreter, performs the actual application checks.
++This is native HTTP acceptance, not a browser, live-token or other-OS test.
++"""
++
++from __future__ import annotations
++
++import argparse
++import hashlib
++import ipaddress
++import json
++import os
++from pathlib import Path, PurePosixPath
++import re
++import shutil
++import subprocess
++import sys
++import tempfile
++
++
++class AcceptanceError(ValueError):
++    """An intentionally credential-free failure code."""
++
++
++def _require(condition: bool, code: str) -> None:
++    if not condition:
++        raise AcceptanceError(code)
++
++
++def _sha(path: Path) -> str:
++    digest = hashlib.sha256()
++    with path.open("rb") as stream:
++        for block in iter(lambda: stream.read(1024 * 1024), b""):
++            digest.update(block)
++    return digest.hexdigest()
++
++
++def _is_link(path: Path) -> bool:
++    """NTFS junctions must not escape the package or mutable data container."""
++
++    return path.is_symlink() or bool(getattr(path, "is_junction", lambda: False)())
++
++
++def safe_path(root: Path, value: object) -> Path:
++    _require(isinstance(value, str) and bool(value), "PACKAGE_PATH_INVALID")
++    assert isinstance(value, str)
++    path = PurePosixPath(value)
++    _require(
++        not path.is_absolute()
++        and "\\" not in value
++        and ":" not in value
++        and path.as_posix() == value
++        and not any(part in {"", ".", ".."} for part in value.split("/")),
++        "PACKAGE_PATH_INVALID",
++    )
++    target = root.joinpath(*path.parts)
++    for candidate in (target, *target.parents):
++        if candidate == root:
++            break
++        _require(not _is_link(candidate), "PACKAGE_SYMLINK_FORBIDDEN")
++    return target
++
++
++def verify_inventory(root: Path) -> dict[str, object]:
++    _require(root.is_dir() and not _is_link(root), "PACKAGE_ROOT_INVALID")
++    manifest_path = safe_path(root, "package-manifest.json")
++    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
++    _require(isinstance(manifest, dict), "PACKAGE_MANIFEST_INVALID")
++    records = manifest.get("files")
++    _require(isinstance(records, list) and bool(records), "PACKAGE_FILES_INVALID")
++    expected: set[str] = set()
++    for record in records:
++        _require(isinstance(record, dict), "PACKAGE_FILE_RECORD_INVALID")
++        relative = record.get("path")
++        target = safe_path(root, relative)
++        _require(relative not in expected, "PACKAGE_FILE_DUPLICATE")
++        assert isinstance(relative, str)
++        _require(not relative.startswith("data/") and relative != "package-manifest.json", "PACKAGE_FILE_RESERVED")
++        expected.add(relative)
++        _require(type(record.get("bytes")) is int and record["bytes"] >= 0, "PACKAGE_SIZE_INVALID")
++        _require(isinstance(record.get("sha256"), str) and re.fullmatch(r"[0-9a-f]{64}", record["sha256"]) is not None, "PACKAGE_HASH_INVALID")
++        _require(target.is_file(), "PACKAGE_FILE_MISSING")
++        _require(target.stat().st_size == record["bytes"] and _sha(target) == record["sha256"], "PACKAGE_FILE_CHANGED")
++    observed: set[str] = set()
++    for path in root.rglob("*"):
++        relative = path.relative_to(root).as_posix()
++        _require(not _is_link(path), "PACKAGE_SYMLINK_FORBIDDEN")
++        _require(
++            not (path.name == ".DS_Store" and relative.startswith(("seed-data/runs/", "app/output/runs/"))),
++            "SNAPSHOT_METADATA_UNEXPECTED",
++        )
++        if relative == "data" or relative.startswith("data/"):
++            continue
++        if path.is_file() and relative != "package-manifest.json" and path.name != ".DS_Store":
++            observed.add(relative)
++    _require(observed == expected, "PACKAGE_INVENTORY_MISMATCH")
++    executable = safe_path(root, manifest.get("python_executable"))
++    _require(executable.relative_to(root).as_posix() in expected, "PACKAGE_PYTHON_NOT_BOUND")
++    _require(executable.is_file(), "PACKAGE_PYTHON_MISSING")
++    return manifest
++
++
++def network_guard(event: str, args: tuple[object, ...]) -> None:
++    """Allow literal loopback only; DNS names and all external sockets fail."""
++
++    address = None
++    if event in {"socket.connect", "socket.bind", "socket.sendto"}:
++        address = args[1] if len(args) > 1 else None
++        if event == "socket.sendto":
++            address = args[-1]
++        if not isinstance(address, tuple) or not address:
++            raise AcceptanceError("OFFLINE_NON_LOOPBACK_DENIED")
++        address = address[0]
++    elif event == "socket.getaddrinfo":
++        address = args[0] if args else None
++    elif event in {"socket.gethostbyname", "socket.gethostbyaddr", "socket.getnameinfo"}:
++        raise AcceptanceError("OFFLINE_DNS_DENIED")
++    else:
++        return
++    try:
++        is_loopback = ipaddress.ip_address(str(address)).is_loopback
++    except ValueError:
++        is_loopback = False
++    if not is_loopback:
++        raise AcceptanceError("OFFLINE_NON_LOOPBACK_DENIED")
++
++
++def compare_derived(original: Path, rebuilt: Path) -> int:
++    def inventory(root: Path) -> dict[str, Path]:
++        return {
++            path.relative_to(root).as_posix(): path
++            for branch in ("tables", "ui")
++            for path in (root / branch).rglob("*")
++            if path.is_file()
++        }
++
++    expected, observed = inventory(original), inventory(rebuilt)
++    _require(bool(expected) and set(expected) == set(observed), "REBUILD_FILE_SET_MISMATCH")
++    _require(all(_sha(expected[name]) == _sha(observed[name]) for name in expected), "REBUILD_BYTES_MISMATCH")
++    return len(expected)
++
++
++def seed_location(resolved: object) -> tuple[Path, dict[str, object]]:
++    """resolve_pointer returns the run directory itself, not its manifest."""
++
++    _require(isinstance(resolved, tuple) and len(resolved) == 2, "SEED_POINTER_MISSING")
++    run_dir, pointer = resolved
++    _require(isinstance(run_dir, Path) and isinstance(pointer, dict), "SEED_POINTER_INVALID")
++    _require(run_dir.name == pointer.get("run_id") and run_dir.is_dir(), "SEED_POINTER_LOCATION_MISMATCH")
++    return run_dir, pointer
++
++
++def _worker(root: Path) -> dict[str, object]:
++    _require(not _is_link(root), "PACKAGE_SYMLINK_FORBIDDEN")
++    temporary_root = Path(tempfile.gettempdir()).resolve()
++    root = root.resolve()
++    _require(root != temporary_root and root.is_relative_to(temporary_root), "WORKER_REQUIRES_SYSTEM_TEMP_DIRECTORY")
++    import contextlib
++    import http.client
++    from http.server import BaseHTTPRequestHandler
++    import importlib.util
++    import io
++    import platform
++    import threading
++    import types
++
++    # Applied before importing any application module.  No real SDK getter or
++    # inherited credential is used, even if the receiving host has a token.
++    os.environ.pop("TUSHARE_TOKEN", None)
++    sys.addaudithook(network_guard)
++    token_stub = types.ModuleType("tushare")
++    token_stub.get_token = lambda: None
++    sys.modules["tushare"] = token_stub
++    manifest = verify_inventory(root)
++    app_root = root / "app"
++    sys.path.insert(0, str(root / "packages"))
++    sys.path.insert(0, str(app_root / "src"))
++    spec = importlib.util.spec_from_file_location("swivd_delivery_entry", app_root / "run_dashboard.py")
++    _require(spec is not None and spec.loader is not None, "APP_ENTRY_MISSING")
++    assert spec is not None and spec.loader is not None
++    entry = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(entry)
++    from swivd.v2_pipeline import rebuild_v2
++    from swivd.v2_server import LocalApp, LoopbackHTTPServer, _handler
++    from swivd.v2_storage import resolve_pointer
++
++    data_dir = root / "data" / "state"
++    _require(not data_dir.exists(), "ACCEPTANCE_DATA_ALREADY_EXISTS")
++    data_dir.parent.mkdir()
++    shutil.copytree(root / "seed-data", data_dir)
++    pointer_before = (data_dir / "latest_run.json").read_bytes()
++    ledger_before = (data_dir / "run_ledger.ndjson").read_bytes()
++    run_dir, pointer = seed_location(resolve_pointer(data_dir))
++    run_id = str(pointer["run_id"])
++
++    # rebuild_v2 starts with full independent validate_run_v2, including raw
++    # replay and source closure; do not falsely count it as a hash-only check.
++    rebuilt = root.parent / "断网 重建 &!"
++    rebuild_result = rebuild_v2(run_dir=run_dir, output_dir=rebuilt)
++    _require(rebuild_result.get("status") == "PASS", "REBUILD_NOT_PASS")
++    rebuilt_count = compare_derived(run_dir, rebuilt)
++    _require(rebuilt_count == 516, "FROZEN_SEED_DERIVED_COUNT_MISMATCH")
++
++    with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
++        server = LoopbackHTTPServer(("127.0.0.1", 0), BaseHTTPRequestHandler)
++        port = int(server.server_address[1])
++        # A separate free ephemeral port is used for the doctor's bind probe.
++        import socket
++        with socket.socket() as port_probe:
++            port_probe.bind(("127.0.0.1", 0))
++            doctor_port = int(port_probe.getsockname()[1])
++        doctor = entry._doctor(data_dir, "127.0.0.1", doctor_port)
++        required_doctor = (
++            "python_supported", "dependency_lock_valid", "dependencies_present",
++            "dependencies_locked", "timezone_available", "legacy_archive_available",
++            "data_dir_accessible", "data_dir_exists", "data_dir_writable",
++            "loopback_host", "port_available",
++        )
++        _require(all(doctor.get(key) is True for key in required_doctor), "DOCTOR_ENVIRONMENT_NOT_READY")
++        _require(doctor.get("token_configured") is False and doctor.get("token_source_type") == "NONE", "CREDENTIAL_STUB_FAILED")
++        app = LocalApp(project_root=app_root, data_dir=data_dir, host="127.0.0.1", port=port)
++        server.RequestHandlerClass = _handler(app)
++        thread = threading.Thread(target=server.serve_forever, daemon=True)
++        thread.start()
++
++        def request(route: str, *, as_json: bool = True):
++            connection = http.client.HTTPConnection("127.0.0.1", port, timeout=300)
++            try:
++                connection.request("GET", route)
++                response = connection.getresponse()
++                payload = response.read()
++                _require(response.status == 200, "READ_ONLY_HTTP_FAILED")
++                return json.loads(payload) if as_json else payload
++            finally:
++                connection.close()
++
++        try:
++            html = request("/", as_json=False)
++            _require(b"<!doctype html>" in html.lower() and b"<html" in html.lower(), "HTML_SHELL_MISSING")
++            current = request("/api/v1/snapshots/current")
++            _require(current.get("run_id") == run_id, "HTTP_CURRENT_MISMATCH")
++            catalog = request(f"/api/v1/snapshots/{run_id}/catalog")
++            counts = {
++                level: sum(row.get("level") == level for row in catalog["industries"])
++                for level in ("L1", "L2", "L3")
++            }
++            _require(counts == {"L1": 31, "L2": 134, "L3": 346}, "HTTP_CATALOG_COUNTS_MISMATCH")
++            first = next(row for row in catalog["industries"] if row["level"] == "L1" and row.get("is_pub") in {1, "1"})
++            shard = request(f"/api/v1/snapshots/{run_id}/industries/L1/{first['index_code']}")
++            _require(isinstance(shard, dict) and bool(shard.get("history")) and isinstance(shard.get("constituents"), list), "HTTP_INDUSTRY_SHARD_INVALID")
++        finally:
++            server.shutdown()
++            server.server_close()
++            thread.join(timeout=10)
++            _require(not thread.is_alive(), "HTTP_THREAD_NOT_STOPPED")
++
++    _require((data_dir / "latest_run.json").read_bytes() == pointer_before, "CURRENT_POINTER_CHANGED")
++    _require((data_dir / "run_ledger.ndjson").read_bytes() == ledger_before, "LEDGER_CHANGED")
++    _require(not (data_dir / "transactions" / "publication.json").exists(), "PUBLICATION_TRANSACTION_CREATED")
++    _require(not list((data_dir / "jobs").glob("*.json")), "JOB_CREATED")
++    verify_inventory(root)
++    return {
++        "status": "PASS", "native_platform": platform.system(), "native_machine": platform.machine(),
++        "python_version": platform.python_version(), "python_source": "PACKAGED_RUNTIME_ONLY",
++        "network_policy": "LITERAL_LOOPBACK_ONLY_EXTERNAL_NETWORK_DENIED",
++        "credential_policy": "NO_REAL_TOKEN_READ_SDK_GETTER_STUBBED",
++        "package_static_files": len(manifest["files"]),
++        "seed_run_id": run_id, "seed_manifest_sha256": _sha(run_dir / "manifest.json"),
++        "full_seed_validation": "PASS", "offline_rebuild": "PASS",
++        "byte_identical_derived_files": rebuilt_count,
++        "migration_path": "CHINESE_SPACES_AMPERSAND_EXCLAMATION_SYSTEM_TEMP",
++        "doctor": doctor, "http_level_counts": counts, "http_industry_shard": "PASS",
++        "seed_pointer_and_ledger_unchanged": True, "http_service_stopped": True,
++        "browser_e2e": "NOT_RUN", "live_token_e2e": "NOT_RUN",
++        "windows_e2e": "NATIVE_OFFLINE_HTTP_PASS_BROWSER_AND_LIVE_UNVERIFIED" if sys.platform == "win32" else "WINDOWS_E2E_UNVERIFIED",
++        "other_platforms": "NOT_VERIFIED_BY_THIS_HOST",
++    }
++
++
++def verify_delivery(package: Path, *, timeout: int = 1800) -> dict[str, object]:
++    _require(not _is_link(package), "PACKAGE_SYMLINK_FORBIDDEN")
++    original = package.resolve()
++    verify_inventory(original)
++    with tempfile.TemporaryDirectory(prefix="swivd-delivery-") as temporary:
++        migrated = Path(temporary) / "迁移 中文 空格 &!"
++
++        def ignore_state(directory: str, names: list[str]) -> set[str]:
++            ignored = {name for name in names if name == ".DS_Store"}
++            if Path(directory) == original and "data" in names:
++                ignored.add("data")
++            return ignored
++
++        shutil.copytree(original, migrated, ignore=ignore_state)
++        manifest = verify_inventory(migrated)
++        executable = safe_path(migrated, manifest["python_executable"])
++        environment = {key: value for key, value in os.environ.items() if key not in {"TUSHARE_TOKEN", "PYTHONPATH", "PYTHONHOME"}}
++        completed = subprocess.run(
++            [str(executable), "-I", "-B", "-X", "utf8", str(Path(__file__).resolve()), "--worker", str(migrated)],
++            cwd=temporary, env=environment, capture_output=True, text=True, encoding="utf-8", timeout=timeout,
++        )
++        try:
++            result = json.loads(completed.stdout)
++        except (TypeError, ValueError) as exc:
++            raise AcceptanceError("PACKAGED_WORKER_OUTPUT_INVALID") from exc
++        if completed.returncode != 0:
++            safe_code = result.get("safe_error_code") if isinstance(result, dict) else None
++            if isinstance(safe_code, str) and re.fullmatch(r"[A-Z][A-Z0-9_]+", safe_code):
++                raise AcceptanceError("PACKAGED_NATIVE_WORKER_FAILED_" + safe_code)
++            raise AcceptanceError("PACKAGED_NATIVE_WORKER_FAILED")
++        _require(isinstance(result, dict) and result.get("status") == "PASS", "PACKAGED_WORKER_NOT_PASS")
++        verify_inventory(original)
++        result["original_package_static_files_unchanged"] = True
++        return result
++
++
++def main(argv: list[str] | None = None) -> int:
++    parser = argparse.ArgumentParser(description=__doc__)
++    group = parser.add_mutually_exclusive_group(required=True)
++    group.add_argument("--package", type=Path)
++    group.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
++    parser.add_argument("--timeout", type=int, default=1800)
++    arguments = parser.parse_args(argv)
++    try:
++        result = _worker(arguments.worker) if arguments.worker else verify_delivery(arguments.package, timeout=arguments.timeout)
++    except Exception as exc:
++        code = str(exc) if isinstance(exc, AcceptanceError) else type(exc).__name__
++        print(json.dumps({"status": "FAIL", "safe_error_code": code, "windows_e2e": "WINDOWS_E2E_UNVERIFIED"}, ensure_ascii=True))
++        return 1
++    print(json.dumps(result, ensure_ascii=True, sort_keys=True, indent=2))
++    return 0
++
++
++if __name__ == "__main__":
++    raise SystemExit(main())

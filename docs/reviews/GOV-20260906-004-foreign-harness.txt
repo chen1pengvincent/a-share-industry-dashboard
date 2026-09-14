@@ -1,0 +1,100 @@
+"""Read final archives, extract and verify only; never execute their binaries."""
+from pathlib import Path, PurePosixPath
+import hashlib
+import importlib.util
+import json
+import re
+import shutil
+import stat
+import sys
+import tempfile
+import unicodedata
+import zipfile
+
+BASE = Path('/private/tmp/swivd-portable.Kgl6I0')
+SOURCE = Path('/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/portable/verify_delivery.py')
+spec = importlib.util.spec_from_file_location('independent_foreign_verifier', SOURCE)
+verifier = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(verifier)
+
+def sha(path):
+    with path.open('rb') as stream:
+        return hashlib.file_digest(stream, 'sha256').hexdigest()
+
+def deny_network(event, _args):
+    if event in {'socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname', 'socket.gethostbyaddr'}:
+        raise RuntimeError('OFFLINE_NETWORK_DENIED')
+
+sys.addaudithook(deny_network)
+
+def main():
+    evidence = {'schema_version': 'swivd-foreign-zip-checks-v1', 'status': 'RUNNING',
+                'host_validation': 'MACOS_STATIC_ARCHIVE_ONLY', 'network': 'DENIED',
+                'foreign_binaries_executed': False, 'windows_e2e': 'WINDOWS_E2E_UNVERIFIED',
+                'intel_macos_e2e': 'INTEL_MACOS_E2E_UNVERIFIED', 'archives': []}
+    for target in ('windows-x86_64', 'macos-x86_64'):
+        name = 'SWIVD-2.3.0-portable.1-' + target
+        archive = BASE / 'build-final' / (name + '.zip')
+        before = sha(archive)
+        declared = archive.with_suffix('.zip.sha256').read_text(encoding='ascii').split()[0]
+        assert before == declared, 'ZIP_CHECKSUM_MISMATCH'
+        if target == 'windows-x86_64':
+            assert before == '41979cce706a69d5214047a166dbc48b11a1243d63cb73f6db804f79fc93f95e'
+        build = json.loads((archive.parent / (name + '-build.json')).read_text(encoding='utf-8'))
+        assert build['sha256'] == before
+        extraction = Path(tempfile.mkdtemp(prefix='swivd-foreign-zip-')) / '异机 中文 空格 &!'
+        extraction.mkdir()
+        observed, folded = set(), set()
+        with zipfile.ZipFile(archive) as bundle:
+            bad = bundle.testzip()
+            assert bad is None, 'ZIP_CRC_FAILURE'
+            for item in bundle.infolist():
+                pure = PurePosixPath(item.filename)
+                assert item.filename and pure.as_posix() == item.filename
+                assert not pure.is_absolute() and pure.parts[0] == name
+                assert len(pure.parts) > 1
+                for part in pure.parts:
+                    assert part not in {'', '.', '..'} and not part.endswith((' ', '.'))
+                    assert re.search(r'[<>:"\\|?*\x00-\x1f]', part) is None, 'WINDOWS_INVALID_CHARACTER'
+                    assert re.fullmatch(r'CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9]|CONIN\$|CONOUT\$', part.split('.')[0], re.I) is None, 'WINDOWS_DEVICE_NAME'
+                assert item.filename not in observed, 'ZIP_DUPLICATE_PATH'
+                observed.add(item.filename)
+                normalized = unicodedata.normalize('NFC', item.filename).casefold()
+                assert normalized not in folded, 'CASE_INSENSITIVE_PATH_COLLISION'
+                folded.add(normalized)
+                assert stat.S_IFMT(item.external_attr >> 16) in {0, stat.S_IFREG}, 'ZIP_NON_REGULAR_FILE'
+                assert not item.is_dir() and not item.flag_bits & 1, 'ZIP_UNEXPECTED_ENTRY'
+            for item in bundle.infolist():
+                destination = extraction.joinpath(*PurePosixPath(item.filename).parts)
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with bundle.open(item) as source, destination.open('xb') as output:
+                    shutil.copyfileobj(source, output)
+        root = extraction / name
+        package = verifier.verify_inventory(root)
+        assert package['target'] == target
+        assert package['seed_run_id'] == 'SWIVD2-RUN-20260904-001'
+        assert package['seed_manifest_sha256'] == 'cfb0e20fa13fa76ea8fbdc1ac611b246f0f48bebd87e1b80f92bb03f522dba6a'
+        manifest_sha = sha(root / 'package-manifest.json')
+        assert manifest_sha == build['manifest_sha256']
+        assert sha(archive) == before, 'ZIP_CHANGED_DURING_VERIFICATION'
+        relative_paths = [record['path'] for record in package['files']]
+        maximum = max(relative_paths, key=lambda value: len(value.encode('utf-16-le')) // 2)
+        record = {'target': target, 'archive': archive.name, 'archive_sha256': before,
+                  'archive_bytes': archive.stat().st_size, 'manifest_sha256': manifest_sha,
+                  'verified_static_files': len(relative_paths), 'zip_entries': len(observed),
+                  'zip_crc': 'PASS', 'exact_inventory_and_hashes': 'PASS',
+                  'windows_path_components': 'PASS', 'case_insensitive_paths': 'PASS',
+                  'max_package_relative_utf16_units': len(maximum.encode('utf-16-le')) // 2,
+                  'max_package_relative_path': maximum,
+                  'package_root_utf16_units': len(name.encode('utf-16-le')) // 2,
+                  'extraction_directory': str(root),
+                  'foreign_binary_execution': 'NOT_RUN', 'status': 'PASS'}
+        evidence['archives'].append(record)
+        (BASE / 'foreign-zip-checks.json').write_text(json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+        print(json.dumps(record, ensure_ascii=False), flush=True)
+    evidence['status'] = 'PASS'
+    (BASE / 'foreign-zip-checks.json').write_text(json.dumps(evidence, ensure_ascii=False, sort_keys=True, indent=2) + '\n', encoding='utf-8')
+    print(json.dumps({'status': 'PASS', 'archives': len(evidence['archives']), 'foreign_binaries_executed': False}), flush=True)
+
+if __name__ == '__main__':
+    main()

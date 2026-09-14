@@ -1,0 +1,56 @@
+"""Temporary browser harness: real UI/jobs, controlled worker, no provider calls."""
+from pathlib import Path
+import socket
+import sys
+import time
+
+PROJECT = Path('/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard')
+DATA = Path('/private/tmp/swivd-v23-chrome.yceW2q/data')
+CONTROL = Path(__file__).parent / 'release.txt'
+sys.path.insert(0, str(PROJECT / 'src'))
+from swivd import v2_jobs
+from swivd.v2_pipeline import UpdateTarget, V2PipelineError
+from swivd.v2_server import LocalApp, LoopbackHTTPServer, _handler
+
+def no_outbound(*args, **kwargs):
+    raise RuntimeError('ACCEPTANCE_OUTBOUND_FORBIDDEN')
+socket.socket.connect = no_outbound
+socket.socket.connect_ex = no_outbound
+socket.getaddrinfo = no_outbound
+
+v2_jobs.resolve_update_target = lambda: UpdateTarget(
+    as_of='20260901',
+    reason_code='PREVIOUS_OPEN_DAY_BEFORE_SW_DAILY_CUTOFF',
+    evaluated_at='2026-09-02T10:00:00+08:00',
+)
+
+def controlled_worker(**kwargs):
+    assert kwargs['data_dir'].resolve() == DATA.resolve()
+    if kwargs['purpose'] != 'UPDATE_LATEST':
+        raise V2PipelineError('AS_OF_NOT_OPEN')
+    progress = kwargs['progress']
+    progress('PREFLIGHT', 1, 1, '20260901')
+    progress('CLASSIFICATION', 3, 3, 'L3')
+    progress('INDUSTRY_DATA', 1, 2, 'L3:850401.SI')
+    deadline = time.monotonic() + 1800
+    while not CONTROL.exists():
+        if time.monotonic() > deadline:
+            raise V2PipelineError('DAILY_BASIC_EMPTY')
+        time.sleep(0.2)
+    if CONTROL.read_text().strip() == 'FAIL':
+        raise V2PipelineError('DAILY_BASIC_EMPTY')
+    for phase in ('MEMBERSHIP', 'STOCK_VALUATION', 'BUILD', 'VALIDATE', 'PUBLISH'):
+        progress(phase, 1, 1, '20260901')
+    return {'run_id': 'SWIVD2-RUN-20260901-002', 'as_of': '20260901',
+            'job_outcome': 'ALREADY_UP_TO_DATE'}
+
+v2_jobs.run_snapshot = controlled_worker
+app = LocalApp(project_root=PROJECT, data_dir=DATA, host='127.0.0.1', port=18765)
+server = LoopbackHTTPServer(('127.0.0.1', 18765), _handler(app))
+print('CONTROLLED_WORKER_ACCEPTANCE http://127.0.0.1:18765', flush=True)
+try:
+    server.serve_forever(poll_interval=0.25)
+except KeyboardInterrupt:
+    print('ACCEPTANCE_SERVER_STOPPED', flush=True)
+finally:
+    server.server_close()

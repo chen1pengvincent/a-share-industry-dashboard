@@ -1,0 +1,47 @@
+{
+  "job_records_absent_direct_cli_engine": true,
+  "network_policy": "DENY_SOCKET_CONNECT_AND_DNS",
+  "protected_state_hard_gate": "PASS",
+  "publication_transaction_absent": true,
+  "runs": [
+    {
+      "as_of": "20260904",
+      "byte_identical_files": 516,
+      "manifest_sha256": "cfb0e20fa13fa76ea8fbdc1ac611b246f0f48bebd87e1b80f92bb03f522dba6a",
+      "max_attempt_count": 1,
+      "migration_validation": "PASS",
+      "purpose": "UPDATE_LATEST",
+      "rebuild_status": "PASS",
+      "request_count": 142,
+      "requests_by_api": {
+        "daily_basic": 1,
+        "index_classify": 3,
+        "index_member_all": 132,
+        "sw_daily": 5,
+        "trade_cal": 1
+      },
+      "run_id": "SWIVD2-RUN-20260904-001"
+    },
+    {
+      "as_of": "20260901",
+      "byte_identical_files": 516,
+      "manifest_sha256": "cb629b5031784098fb121072684194262c295f15608c08a6437c319807b6a9fd",
+      "max_attempt_count": 1,
+      "migration_validation": "PASS",
+      "purpose": "MATERIALIZE_DATE",
+      "rebuild_status": "PASS",
+      "request_count": 140,
+      "requests_by_api": {
+        "daily_basic": 1,
+        "index_classify": 3,
+        "index_member_all": 132,
+        "sw_daily": 3,
+        "trade_cal": 1
+      },
+      "run_id": "SWIVD2-RUN-20260901-001"
+    }
+  ],
+  "secret_scan_hard_gate": "PASS",
+  "status": "PASS",
+  "writer_lock_reacquired": true
+}

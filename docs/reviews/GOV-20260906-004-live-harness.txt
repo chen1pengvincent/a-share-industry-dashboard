@@ -1,0 +1,70 @@
+"""One authenticated HTTPS calendar diagnostic; never persist response or token."""
+import contextlib
+import importlib.util
+import io
+import json
+import os
+from pathlib import Path
+import sys
+
+ROOT = Path(sys.argv[1]).resolve()
+REPORT = Path(__file__).resolve().parent / 'packaged-live-probe.json'
+
+def main():
+    spec = importlib.util.spec_from_file_location('portable_launcher_probe', ROOT / 'launcher.py')
+    launcher = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(launcher)
+    manifest = launcher.verify_package(ROOT)
+    launcher.verify_runtime(ROOT, manifest)
+    entry = launcher._load_app(ROOT)
+    sink = io.StringIO()
+    with contextlib.redirect_stdout(sink), contextlib.redirect_stderr(sink):
+        source = launcher.configure_token(interactive=False)
+        token = os.environ.get('TUSHARE_TOKEN')
+        if not token:
+            return {'status': 'BLOCKED', 'safe_message_code': 'LOCAL_TOKEN_MISSING'}
+        from swivd.tushare_client import SecureTushareClient
+        from swivd.runtime_environment import dependency_status, timezone_available
+        import numpy, pandas, lxml.etree, tushare
+        assert dependency_status(ROOT / 'app')['dependencies_locked']
+        assert timezone_available()
+        response = SecureTushareClient(token=token, max_transient_retries=0).call(
+            'trade_cal', {'exchange': 'SSE', 'start_date': '20260904', 'end_date': '20260904'},
+            ['exchange', 'cal_date', 'is_open', 'pretrade_date'])
+        rows = response['data']['items']
+        fields = response['data']['fields']
+        assert len(rows) == 1
+        row = dict(zip(fields, rows[0]))
+        assert row['cal_date'] == '20260904' and str(row['is_open']) == '1'
+        needle = token.encode()
+        checked = 0
+        for path in ROOT.rglob('*'):
+            if not path.is_file():
+                continue
+            checked += 1
+            with path.open('rb') as stream:
+                overlap = b''
+                while block := stream.read(1024 * 1024):
+                    assert needle not in overlap + block, 'SECRET_FOUND'
+                    overlap = block[-max(len(needle) - 1, 0):]
+        assert token not in sink.getvalue()
+        assert not any(token in arg for arg in sys.argv)
+    return {'status': 'PASS', 'python_source': 'PACKAGED_RUNTIME_ONLY',
+            'python_version': '.'.join(map(str, sys.version_info[:3])),
+            'dependency_lock': 'PASS', 'numpy_pandas_lxml_tushare_import': 'PASS',
+            'token_source_type': source, 'api_name': 'trade_cal', 'date': '20260904',
+            'requests': 1, 'attempt_count': response.attempt_count,
+            'transport': 'HTTPS_NO_REDIRECT', 'certificate_verification': True,
+            'secret_scan_files': checked, 'secret_matches': 0,
+            'formal_state_written': False, 'raw_response_persisted': False}
+
+try:
+    result = main()
+except BaseException as exc:
+    result = {'status': 'BLOCKED', 'safe_message_code': 'PACKAGED_LIVE_PROBE_FAILED',
+              'safe_exception_type': type(exc).__name__}
+    if type(getattr(exc, 'code', None)) is int:
+        result['api_error_code'] = exc.code
+REPORT.write_text(json.dumps(result, sort_keys=True, indent=2) + '\n')
+print(json.dumps(result, sort_keys=True), flush=True)
+raise SystemExit(0 if result['status'] == 'PASS' else 1)

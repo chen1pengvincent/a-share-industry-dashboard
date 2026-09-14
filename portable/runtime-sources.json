@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "python_version": "3.14.6",
+  "sources_checked_on": "2026-09-06",
+  "source_policy": "Fixed HTTPS upstream release URLs and SHA-256; no system Python installation and no unpinned runtime fallback.",
+  "targets": {
+    "macos-arm64": {
+      "platform": "macosx_11_0_arm64",
+      "minimum_os": "macOS 11.0",
+      "architecture": "arm64",
+      "runtime_kind": "python-build-standalone-install-only-stripped",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260804/cpython-3.14.6%2B20260804-aarch64-apple-darwin-install_only_stripped.tar.gz",
+      "sha256": "e0d4e5066aef3248c22e08a07546bfd5edeaca904c91fadc296be720998ec2ec",
+      "size": 26008022,
+      "archive_root": "python",
+      "executable": "bin/python3.14",
+      "verification_source": "https://api.github.com/repos/astral-sh/python-build-standalone/releases/tags/20260804"
+    },
+    "macos-x86_64": {
+      "platform": "macosx_10_15_x86_64",
+      "minimum_os": "macOS 10.15",
+      "architecture": "x86_64",
+      "runtime_kind": "python-build-standalone-install-only-stripped",
+      "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20260804/cpython-3.14.6%2B20260804-x86_64-apple-darwin-install_only_stripped.tar.gz",
+      "sha256": "78ded4c4f0b6a931240f09bd20608533bb40dd71c1ff953c7267359075ca8b16",
+      "size": 25997980,
+      "archive_root": "python",
+      "executable": "bin/python3.14",
+      "verification_source": "https://api.github.com/repos/astral-sh/python-build-standalone/releases/tags/20260804"
+    },
+    "windows-x86_64": {
+      "platform": "win_amd64",
+      "minimum_os": "Windows 10",
+      "architecture": "AMD64",
+      "runtime_kind": "python-org-embeddable",
+      "url": "https://www.python.org/ftp/python/3.14.6/python-3.14.6-embed-amd64.zip",
+      "sha256": "df901e84a896ff1ee720ad03377e0c8d8c2244fda79808aeeaff6316df1cb75c",
+      "archive_root": ".",
+      "executable": "python.exe",
+      "verification_source": "https://www.python.org/ftp/python/3.14.6/python-3.14.6-embed-amd64.zip.spdx.json",
+      "live_validation_state": "WINDOWS_E2E_UNVERIFIED"
+    }
+  },
+  "licenses": {
+    "cpython": "https://docs.python.org/3.14/license.html",
+    "python_build_standalone": "https://github.com/astral-sh/python-build-standalone/blob/20260804/python-licenses.rst",
+    "policy": "Retain all runtime license files and wheel dist-info license/NOTICE files; distribution is private research use, not external publication. Runtime search-path customization is recorded in the asset manifest."
+  }
+}

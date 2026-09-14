@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>A股行业估值全景仪表盘</title>
+  <link rel="stylesheet" href="./app.css">
+  <link rel="stylesheet" href="./history.css">
+</head>
+<body>
+  <section id="serviceGuard" class="service-guard" aria-live="polite">
+    <div class="guard-card">
+      <p class="eyebrow">LOCAL SERVICE REQUIRED</p>
+      <h1>请通过本地服务打开仪表盘</h1>
+      <p id="guardReason">这个文件是页面源码，直接预览不会连接已验证快照，也不能安全更新数据。</p>
+      <code>python3 run_dashboard.py serve</code>
+      <p>然后在 Chrome 中访问 <strong>http://127.0.0.1:8765</strong>。页面不会自动打开浏览器。</p>
+    </div>
+  </section>
+
+  <div id="appShell" hidden>
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-title">📊 A股行业估值全景仪表盘</div>
+        <div class="brand-subtitle">申万 SW2021 L1 / L2 / L3 · Tushare 官方行业估值</div>
+      </div>
+      <div class="header-meta">
+        <div class="snapshot-meta"><span id="snapshot">尚无已验证快照</span><span class="header-badge">RESEARCH ONLY</span></div>
+        <div class="header-actions">
+          <label class="date-control"><span>历史开市日</span><input id="historyDate" type="date" min="2021-12-13"></label>
+          <button id="materialize" class="ctrl-btn">载入历史开市日</button>
+          <button id="currentSnapshot" class="ctrl-btn">载入当前快照</button>
+          <button id="update" class="primary-btn">更新至最近开市日</button>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tabs" role="tablist" aria-label="仪表盘视图">
+      <button id="tab-overview" class="tab-btn active" role="tab" aria-selected="true" aria-controls="panel-overview" data-tab="overview">🏠 总览</button>
+      <button id="tab-heatmap" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-heatmap" data-tab="heatmap" tabindex="-1">🌡️ 估值热力图</button>
+      <button id="tab-trend" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-trend" data-tab="trend" tabindex="-1">📈 历史走势</button>
+      <button id="tab-ranking" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-ranking" data-tab="ranking" tabindex="-1">🏆 涨跌排行</button>
+      <button id="tab-scatter" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-scatter" data-tab="scatter" tabindex="-1">🔍 PE-PB 象限</button>
+      <button id="tab-detail" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-detail" data-tab="detail" tabindex="-1">📋 数据明细</button>
+      <button id="tab-constituents" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-constituents" data-tab="constituents" tabindex="-1">🧩 行业成分</button>
+      <button id="tab-archive" class="tab-btn" role="tab" aria-selected="false" aria-controls="panel-archive" data-tab="archive" tabindex="-1">🗃️ SW2014 档案</button>
+    </nav>
+
+    <section id="job" class="status-strip" aria-live="polite" hidden>
+      <div><span id="jobText">QUEUED</span><span id="jobPercent">0%</span></div>
+      <progress id="progress" max="100" value="0">0%</progress>
+      <button id="retryProgress" class="ctrl-btn" hidden>重试读取进度</button>
+    </section>
+    <section id="ready" class="status-strip ready" aria-live="polite" hidden>
+      <span id="readyText">新数据已就绪；当前页面仍固定在原快照。</span>
+      <button id="switch" class="primary-btn">切换到新快照</button>
+    </section>
+
+    <section class="global-toolbar" aria-label="全局筛选">
+      <div class="control-group">
+        <span class="ctrl-label">行业级别</span>
+        <div class="segmented" data-level-switch>
+          <button class="ctrl-btn active" data-level="L1" aria-pressed="true">L1 一级</button>
+          <button class="ctrl-btn" data-level="L2" aria-pressed="false">L2 二级</button>
+          <button class="ctrl-btn" data-level="L3" aria-pressed="false">L3 三级</button>
+        </div>
+      </div>
+      <label class="search-control"><span class="ctrl-label">行业搜索</span><input id="industrySearch" class="ctrl-search" type="search" placeholder="名称或指数代码"></label>
+      <div id="levelSummary" class="toolbar-note">等待快照</div>
+    </section>
+
+    <main class="dashboard">
+      <section id="panel-overview" class="tab-content active" role="tabpanel" aria-labelledby="tab-overview" data-panel="overview">
+        <div id="summaryCards" class="summary-cards"></div>
+        <div class="grid-2">
+          <article class="chart-wrap">
+            <div class="chart-title">行业 PE 历史百分位横向对比 <span class="badge">当前层级</span></div>
+            <div id="overviewBars" class="native-chart chart-tall overview-bars"></div>
+          </article>
+          <article class="chart-wrap">
+            <div class="chart-title">PE 历史位置分布 <span class="badge">只描述历史位置</span></div>
+            <div id="distributionChart" class="native-chart"></div>
+          </article>
+        </div>
+        <article class="chart-wrap">
+          <div class="chart-title">PE 与 PB 历史百分位轮廓 <span class="badge">非投资结论</span></div>
+          <div id="radarChart" class="native-chart"></div>
+        </article>
+      </section>
+
+      <section id="panel-heatmap" class="tab-content" role="tabpanel" aria-labelledby="tab-heatmap" data-panel="heatmap" hidden>
+        <div class="controls">
+          <span class="ctrl-label">着色指标</span>
+          <div class="segmented" id="heatMetric">
+            <button class="ctrl-btn active" data-heat-metric="pe_percentile" aria-pressed="true">PE 百分位</button>
+            <button class="ctrl-btn" data-heat-metric="pb_percentile" aria-pressed="false">PB 百分位</button>
+          </div>
+          <div class="legend" aria-label="历史百分位色带">
+            <span><i class="legend-dot p0"></i>0–20</span><span><i class="legend-dot p1"></i>20–40</span><span><i class="legend-dot p2"></i>40–60</span><span><i class="legend-dot p3"></i>60–80</span><span><i class="legend-dot p4"></i>80–100</span>
+          </div>
+        </div>
+        <div id="heatmapGrid" class="heat-grid"></div>
+      </section>
+
+      <section id="panel-trend" class="tab-content" role="tabpanel" aria-labelledby="tab-trend" data-panel="trend" hidden>
+        <div class="controls">
+          <label><span class="ctrl-label">行业</span><select id="trendIndustry" class="ctrl-select"></select></label>
+          <div class="segmented" id="historyMetric">
+            <button class="ctrl-btn active" data-history-metric="pe" aria-pressed="true">官方 PE</button>
+            <button class="ctrl-btn" data-history-metric="pb" aria-pressed="false">官方 PB</button>
+          </div>
+        </div>
+        <article class="chart-wrap">
+          <div class="chart-title">官方行业历史走势 <span class="badge">sw_daily</span></div>
+          <div id="trendChart" class="native-chart chart-tall"></div>
+          <div id="trendStats" class="chart-stats"></div>
+        </article>
+      </section>
+
+      <section id="panel-ranking" class="tab-content" role="tabpanel" aria-labelledby="tab-ranking" data-panel="ranking" hidden>
+        <div class="controls">
+          <span class="ctrl-label">收益区间</span>
+          <div class="segmented" id="rankPeriod">
+            <button class="ctrl-btn active" data-rank-field="return_5d" aria-pressed="true">近 5 个交易日</button>
+            <button class="ctrl-btn" data-rank-field="return_mtd" aria-pressed="false">月初至今</button>
+            <button class="ctrl-btn" data-rank-field="return_ytd" aria-pressed="false">年初至今</button>
+          </div>
+        </div>
+        <article class="chart-wrap">
+          <div class="chart-title">官方指数收盘价收益排行 <span class="badge">涨红跌绿</span></div>
+          <div id="rankingList" class="rank-list"></div>
+        </article>
+      </section>
+
+      <section id="panel-scatter" class="tab-content" role="tabpanel" aria-labelledby="tab-scatter" data-panel="scatter" hidden>
+        <article class="chart-wrap">
+          <div class="chart-title">行业当前 PE-PB 象限 <span class="badge">虚线为横截面中位数</span></div>
+          <div id="scatterChart" class="native-chart chart-tall"></div>
+        </article>
+      </section>
+
+      <section id="panel-detail" class="tab-content" role="tabpanel" aria-labelledby="tab-detail" data-panel="detail" hidden>
+        <article class="chart-wrap">
+          <div class="chart-title">行业数据明细 <span class="badge">点击表头排序</span></div>
+          <p class="hint">行业 PE/PB 来自官方 sw_daily；未发布行业保留目录但不会由个股数据补造。</p>
+          <div id="industryTable" class="data-table-wrap"></div>
+        </article>
+      </section>
+
+      <section id="panel-constituents" class="tab-content" role="tabpanel" aria-labelledby="tab-constituents" data-panel="constituents" hidden>
+        <div class="controls">
+          <label><span class="ctrl-label">行业</span><select id="memberIndustry" class="ctrl-select"></select></label>
+          <label><span class="ctrl-label">成分股搜索</span><input id="stockSearch" class="ctrl-search" type="search" placeholder="股票名称或代码"></label>
+        </div>
+        <section id="constituentEmpty" class="empty-state">
+          <h2>选择行业</h2>
+          <p>行业估值来自官方 sw_daily；个股估值只用于所选行业内横截面位置。</p>
+        </section>
+        <section id="constituentDetail" hidden>
+          <div class="detail-title"><div><p id="breadcrumb" class="eyebrow"></p><h2 id="industryName"></h2></div><span id="published" class="tag"></span></div>
+          <div id="industryMetrics" class="summary-cards compact"></div>
+          <article class="chart-wrap">
+            <div class="chart-title">目标日成分股与横截面位置 <span class="badge">有限正值 · 含自身</span></div>
+            <p class="hint">百分位 = count(x ≤ current) / valid_N × 100；样本少于 5、边界未知或路径重叠时不计算。成员为快照中的去重股票数，覆盖率 = 有效样本 / 成员；搜索仅筛选显示行，不改变计算范围。市值统一显示亿元人民币，股息率显示百分比。</p>
+            <div class="data-table-wrap"><table><thead><tr><th>股票</th><th>PE_TTM</th><th>PE_TTM 百分位与覆盖</th><th>PB</th><th>PB 百分位与覆盖</th><th>PE</th><th>PS_TTM</th><th>DV_TTM（%）</th><th>总市值（亿元）</th><th>流通市值（亿元）</th><th>状态</th></tr></thead><tbody id="stocks"></tbody></table></div>
+          </article>
+        </section>
+      </section>
+
+      <section id="panel-archive" class="tab-content" role="tabpanel" aria-labelledby="tab-archive" data-panel="archive" hidden>
+        <div class="archive-note"><strong>SW2014 L1 历史档案</strong><span>与 SW2021 完全分轴，不拼接、不参与当前层级排行。</span></div>
+        <div class="controls">
+          <label><span class="ctrl-label">档案行业</span><select id="archiveIndustry" class="ctrl-select"></select></label>
+          <div class="segmented" id="archiveMetric">
+            <button class="ctrl-btn active" data-archive-metric="pe" aria-pressed="true">档案 PE</button>
+            <button class="ctrl-btn" data-archive-metric="pb" aria-pressed="false">档案 PB</button>
+          </div>
+        </div>
+        <article class="chart-wrap">
+          <div class="chart-title">SW2014 官方行业历史 <span class="badge">截至 2021-12-10</span></div>
+          <div id="archiveChart" class="native-chart chart-tall"></div>
+          <div id="archiveStats" class="chart-stats"></div>
+        </article>
+        <article class="chart-wrap">
+          <div class="chart-title">SW2014 档案摘要 <span class="badge">只读</span></div>
+          <div id="archiveTable" class="data-table-wrap"></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="./bootstrap.js"></script>
+  <script src="./app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+{
+  "schema_version": "swivd-project-spec-v4.3",
+  "contract_version": "swivd-contract-v2.3.0",
+  "contract_file": "PROJECT_CONTRACT_V2.md",
+  "manifest_version": "swivd-local-snapshot-manifest-v4",
+  "audit_version": "swivd-v2-audit-v2",
+  "ui_catalog_version": "swivd-ui-catalog-v3",
+  "ui_industry_shard_version": "swivd-industry-shard-v2",
+  "project_id": "sw-industry-valuation-dashboard",
+  "decision_id": "GOV-20260906-001",
+  "project_root_mode": "ENTRYPOINT_RELATIVE",
+  "status_defaults": {
+    "research_grade": "RESEARCH_ONLY",
+    "decision_eligible": false,
+    "production_approved": false,
+    "windows_e2e": "UNVERIFIED"
+  },
+  "network": {
+    "base_url": "https://api.tushare.pro",
+    "allow_redirects": false,
+    "allowed_apis": [
+      "trade_cal",
+      "index_classify",
+      "sw_daily",
+      "index_member_all",
+      "daily_basic"
+    ],
+    "timeout_seconds": 30,
+    "max_transient_retries": 2,
+    "backoff_seconds": [1, 3]
+  },
+  "provider_execution": {
+    "live_provider_kind": "LIVE_SECURE_TUSHARE",
+    "injected_provider_kind": "TEST_INJECTED_CLIENT",
+    "injected_client_data_dir": "STRICT_SYSTEM_TEMP_DESCENDANT_ONLY",
+    "request_audit_field": "provider_kind",
+    "lineage_provider_kind_must_match": true,
+    "status_by_provider": {
+      "LIVE_SECURE_TUSHARE": {
+        "artifact_publish_state": "LOCAL_RESEARCH_CANDIDATE_COMPLETE",
+        "live_validation_state": "PASS",
+        "live_validation_reason": "SECURE_TUSHARE_CLIENT",
+        "request_transport": "HTTPS_NO_REDIRECT"
+      },
+      "TEST_INJECTED_CLIENT": {
+        "artifact_publish_state": "LOCAL_TEST_PROVIDER_COMPLETE",
+        "live_validation_state": "NOT_LIVE_TEST_PROVIDER",
+        "live_validation_reason": "EXPLICIT_CLIENT_INJECTION",
+        "request_transport": "INJECTED_TEST_CLIENT"
+      }
+    }
+  },
+  "endpoints": {
+    "trade_cal": {
+      "row_limit": 6000,
+      "primary_key": ["exchange", "cal_date"]
+    },
+    "index_classify": {
+      "row_limit": 2000,
+      "primary_key": ["src", "level", "index_code"]
+    },
+    "sw_daily": {
+      "row_limit": 4000,
+      "primary_key": ["ts_code", "trade_date"]
+    },
+    "index_member_all": {
+      "row_limit": 2000,
+      "primary_key": ["l3_code", "ts_code", "in_date", "out_date", "is_new"],
+      "states": ["Y", "N"],
+      "stable_rounds": 2
+    },
+    "daily_basic": {
+      "row_limit": 6000,
+      "primary_key": ["ts_code", "trade_date"]
+    }
+  },
+  "axes": {
+    "SW2021": {
+      "levels": {
+        "L1": {
+          "expected_classification_count": 31,
+          "continuity_policy": "COMMON_START_RECTANGLE"
+        },
+        "L2": {
+          "expected_classification_count": 134,
+          "continuity_policy": "PER_CODE_OBSERVED_INCEPTION_TO_AS_OF"
+        },
+        "L3": {
+          "expected_classification_count": 346,
+          "continuity_policy": "PER_CODE_OBSERVED_INCEPTION_TO_AS_OF"
+        }
+      },
+      "query_start": "20211213",
+      "publication_rule": "BINARY_KEEP_ALL_FETCH_PUBLISHED_ONLY",
+      "industry_valuation_source": "sw_daily",
+      "minimum_history_observations": 252
+    },
+    "SW2014": {
+      "levels": ["L1"],
+      "role": "PRESERVED_LEGACY_ARCHIVE",
+      "source_run_id": "SWIVD-RUN-20260828-004",
+      "source_manifest_sha256": "5180fd5eb20e2cd556a5a5066039fba676272d735ae2d91b9b798e59b33daea0"
+    }
+  },
+  "industry_identity": {
+    "stable_uid_template": "SW2021:{level}:{industry_code}",
+    "normalized_primary_key": ["industry_uid"],
+    "raw_responses_immutable": true,
+    "resolution_schema_version": "swivd-industry-identity-resolution-v1",
+    "resolution_artifact": "inputs/normalized/industry_identity_resolution.json",
+    "rule_version": "swivd-special-steel-identity-v1",
+    "states": [
+      "DIRECT",
+      "EVIDENCE_GATED_ALIAS",
+      "EVIDENCE_GATED_TRANSITION"
+    ],
+    "classification_fields": [
+      "src",
+      "level",
+      "index_code",
+      "catalog_index_code",
+      "quote_index_code",
+      "member_index_code",
+      "industry_uid",
+      "industry_name",
+      "industry_code",
+      "parent_code",
+      "is_pub",
+      "identity_state",
+      "identity_rule",
+      "identity_rule_version"
+    ],
+    "manifest_identity_resolution_fields": [
+      "rule_version",
+      "industry_uid",
+      "state",
+      "current_index_code",
+      "catalog_index_code",
+      "quote_index_code",
+      "member_index_code",
+      "evidence_path",
+      "evidence_sha256"
+    ],
+    "evidence_paths": {
+      "normalized": "inputs/normalized/industry_identity_resolution.json",
+      "quote_raw_root": "inputs/raw/identity_resolution/sw_daily",
+      "membership_raw_template": "inputs/raw/identity_resolution/index_member_all/round_{round}/{is_new}"
+    },
+    "source_code_fields": {
+      "classification_raw": "catalog_index_code",
+      "quote_raw": "source_ts_code",
+      "membership_raw": "source_l3_code"
+    },
+    "ui_identity_fields": [
+      "industry_uid",
+      "catalog_index_code",
+      "quote_index_code",
+      "member_index_code",
+      "current_index_code",
+      "identity_state",
+      "identity_rule",
+      "identity_rule_version",
+      "identity_reason_disclosure"
+    ],
+    "identity_reason_disclosure": {
+      "direct": "NOT_APPLICABLE_DIRECT_IDENTITY",
+      "non_direct": "UNKNOWN_UPSTREAM_INTERNAL_CAUSE"
+    },
+    "default_policy": "ALL_ENDPOINT_CODES_DIRECT_AND_EQUAL",
+    "only_scoped_exception": {
+      "industry_uid": "SW2021:L3:230501",
+      "src": "SW2021",
+      "level": "L3",
+      "industry_code": "230501",
+      "industry_name": "特钢Ⅲ",
+      "parent_path": [
+        {"industry_code": "230000", "industry_name": "钢铁"},
+        {"industry_code": "230500", "industry_name": "特钢Ⅱ"},
+        {"industry_code": "230501", "industry_name": "特钢Ⅲ"}
+      ],
+      "allowed_index_codes": ["850401.SI", "850412.SI"],
+      "current_observed_resolution": {
+        "catalog_index_code": "850401.SI",
+        "quote_index_code": "850412.SI",
+        "member_index_code": "850412.SI",
+        "current_index_code": "850412.SI",
+        "state": "EVIDENCE_GATED_ALIAS"
+      }
+    },
+    "transition_policy": "OFFICIAL_SW_DAILY_OPEN_DAY_SEGMENTS_NO_GAP_NO_OVERLAP",
+    "current_quote_and_member_must_match": true,
+    "revalidate_every_run": true,
+    "failure_conditions": [
+      "DUAL_CODE_SAME_OPEN_DATE",
+      "OPEN_DAY_GAP",
+      "SECOND_ALIAS",
+      "CODE_COLLISION",
+      "NAME_OR_PATH_DRIFT",
+      "QUOTE_MEMBER_NOT_SYNCHRONIZED",
+      "INCOMPLETE_IDENTITY_EVIDENCE"
+    ],
+    "name_fuzzy_join_forbidden": true,
+    "upstream_internal_cause": "UNKNOWN"
+  },
+  "membership": {
+    "source": "index_member_all",
+    "history_start": "20211213",
+    "fetch_states": ["Y", "N"],
+    "interval_policy": "BOUNDARY_UNKNOWN_WITHOUT_AUTHORITY",
+    "overlap_policy": "UNKNOWN_NO_ARBITRARY_SELECTION",
+    "path_policy": "EXACT_SW2021_PATH_OR_BLOCKED",
+    "historical_query": "EXPLICIT_MATERIALIZE_ONLY"
+  },
+  "stock_valuation": {
+    "source": "daily_basic",
+    "display_fields": [
+      "close",
+      "pe",
+      "pe_ttm",
+      "pb",
+      "ps_ttm",
+      "dv_ttm",
+      "total_mv",
+      "circ_mv"
+    ],
+    "percentile_fields": ["pe_ttm", "pb"],
+    "valid_rule": "FINITE_AND_STRICTLY_POSITIVE",
+    "percentile_method": "EMPIRICAL_CDF_LE",
+    "include_current": true,
+    "minimum_peer_count": 5,
+    "missing_fill": "NONE",
+    "empty_response_policy": "FAIL_CLOSED"
+  },
+  "industry_valuation": {
+    "source_fields": ["pe", "pb"],
+    "valid_rule": "FINITE_AND_STRICTLY_POSITIVE",
+    "percentile_method": "EMPIRICAL_CDF_LE",
+    "include_current": true,
+    "minimum_history_observations": 252,
+    "stock_aggregation_forbidden": true
+  },
+  "jobs": {
+    "kinds": ["UPDATE_LATEST", "MATERIALIZE_DATE"],
+    "phases": [
+      "QUEUED",
+      "PREFLIGHT",
+      "CLASSIFICATION",
+      "INDUSTRY_DATA",
+      "MEMBERSHIP",
+      "STOCK_VALUATION",
+      "BUILD",
+      "VALIDATE",
+      "PUBLISH"
+    ],
+    "terminal_states": ["SUCCEEDED", "FAILED", "INTERRUPTED"],
+    "single_writer": true,
+    "update_target_policy": {
+      "timezone": "Asia/Shanghai",
+      "sw_daily_ready_cutoff": "18:30:00",
+      "open_day_before_cutoff": "PREVIOUS_OPEN_DAY",
+      "open_day_at_or_after_cutoff": "CURRENT_OPEN_DAY",
+      "non_trading_day": "PREVIOUS_OPEN_DAY",
+      "already_current": "SUCCEED_NO_NEW_RUN",
+      "selected_target_incomplete": "FAIL_NO_FURTHER_FALLBACK"
+    },
+    "request_failure_fallback": "FORBIDDEN",
+    "progress_monotonicity": {
+      "phase": "NO_REGRESSION",
+      "units": "NO_REGRESSION_WITHIN_PHASE",
+      "percent": "NO_REGRESSION",
+      "terminal_callbacks": "IGNORE"
+    }
+  },
+  "server": {
+    "allowed_hosts": ["127.0.0.1", "localhost"],
+    "default_host": "127.0.0.1",
+    "default_port": 8765,
+    "cors": false,
+    "post_controls": ["HOST", "ORIGIN", "JSON_CONTENT_TYPE", "SESSION_NONCE"],
+    "auto_open_browser": false
+  },
+  "output": {
+    "lineage_layout": "FLAT_ANCESTOR_RAW_V1",
+    "immutable_runs": true,
+    "current_pointer": "latest_run.json",
+    "pointer_scope": "SW2021_L1_L2_L3_WITH_POINT_IN_TIME_MEMBERS",
+    "pointer_record_fields": [
+      "pointer_kind",
+      "scope",
+      "run_id",
+      "as_of",
+      "target_path",
+      "target_sha256"
+    ],
+    "historical_index": "historical_index.json",
+    "historical_index_version": "swivd-historical-index-v2",
+    "historical_index_v1_policy": "READ_ONLY_ADAPTER_UPGRADE_ON_NEXT_PUBLISH",
+    "append_only_ledger": "run_ledger.ndjson",
+    "publication_transaction": {
+      "schema_version": "swivd-publication-transaction-v1",
+      "intent_path": "transactions/publication.json",
+      "states": ["PREPARED", "COMMITTED"],
+      "commit_point": "DURABLE_COMMITTED_INTENT_AFTER_POINTER_REPLACE",
+      "precommit_recovery": "ROLLBACK_POINTER_AND_RUN_INTERRUPTED",
+      "postcommit_recovery": "KEEP_POINTER_AND_IDEMPOTENT_RUN_SUCCEEDED",
+      "reader_policy_while_pending": "FAIL_CLOSED",
+      "terminal_uniqueness": true,
+      "directory_fsync": true
+    },
+    "allow_pickle": false,
+    "allow_remote_assets": false,
+    "paths_relative_in_manifest": true,
+    "historical_job_updates_current_pointer": false,
+    "legacy_schema_compatibility": "READ_ONLY_NO_IN_PLACE_UPGRADE"
+  }
+}

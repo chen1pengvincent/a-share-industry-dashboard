@@ -1,0 +1,49 @@
+{
+  "archives": [
+    {
+      "archive": "SWIVD-2.3.0-portable.1-windows-x86_64.zip",
+      "archive_bytes": 115464083,
+      "archive_sha256": "41979cce706a69d5214047a166dbc48b11a1243d63cb73f6db804f79fc93f95e",
+      "case_insensitive_paths": "PASS",
+      "exact_inventory_and_hashes": "PASS",
+      "extraction_directory": "/var/folders/0s/w4blx0n11qs4cnjlcrh0_jz40000gp/T/swivd-foreign-zip-t2mca4ut/异机 中文 空格 &!/SWIVD-2.3.0-portable.1-windows-x86_64",
+      "foreign_binary_execution": "NOT_RUN",
+      "manifest_sha256": "0a0e1deda7e4979d046b0bbc9c7c0b3c8fed83972201942122eb5ba1c02742af",
+      "max_package_relative_path": "seed-data/runs/SWIVD2-RUN-20260904-001/lineage/SWIVD2-RUN-20260901-002/inputs/raw/identity_resolution/index_member_all/round_1/N/850401_SI.json",
+      "max_package_relative_utf16_units": 143,
+      "package_root_utf16_units": 37,
+      "status": "PASS",
+      "target": "windows-x86_64",
+      "verified_static_files": 5185,
+      "windows_path_components": "PASS",
+      "zip_crc": "PASS",
+      "zip_entries": 5186
+    },
+    {
+      "archive": "SWIVD-2.3.0-portable.1-macos-x86_64.zip",
+      "archive_bytes": 155221554,
+      "archive_sha256": "b7f36c8b28a336baaab9c51d7ff19ec2d92d24c96638ce7f53a895d883b74559",
+      "case_insensitive_paths": "PASS",
+      "exact_inventory_and_hashes": "PASS",
+      "extraction_directory": "/var/folders/0s/w4blx0n11qs4cnjlcrh0_jz40000gp/T/swivd-foreign-zip-bhv4colm/异机 中文 空格 &!/SWIVD-2.3.0-portable.1-macos-x86_64",
+      "foreign_binary_execution": "NOT_RUN",
+      "manifest_sha256": "0cccc2fcdee3da536ae8398264c5dad1b6881dbb446172aa3d811d9f08ea0a5d",
+      "max_package_relative_path": "seed-data/runs/SWIVD2-RUN-20260904-001/lineage/SWIVD2-RUN-20260901-002/inputs/raw/identity_resolution/index_member_all/round_1/N/850401_SI.json",
+      "max_package_relative_utf16_units": 143,
+      "package_root_utf16_units": 35,
+      "status": "PASS",
+      "target": "macos-x86_64",
+      "verified_static_files": 6774,
+      "windows_path_components": "PASS",
+      "zip_crc": "PASS",
+      "zip_entries": 6775
+    }
+  ],
+  "foreign_binaries_executed": false,
+  "host_validation": "MACOS_STATIC_ARCHIVE_ONLY",
+  "intel_macos_e2e": "INTEL_MACOS_E2E_UNVERIFIED",
+  "network": "DENIED",
+  "schema_version": "swivd-foreign-zip-checks-v1",
+  "status": "PASS",
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED"
+}

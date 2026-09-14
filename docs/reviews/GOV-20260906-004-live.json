@@ -1,0 +1,18 @@
+{
+  "api_name": "trade_cal",
+  "attempt_count": 1,
+  "certificate_verification": true,
+  "date": "20260904",
+  "dependency_lock": "PASS",
+  "formal_state_written": false,
+  "numpy_pandas_lxml_tushare_import": "PASS",
+  "python_source": "PACKAGED_RUNTIME_ONLY",
+  "python_version": "3.14.6",
+  "raw_response_persisted": false,
+  "requests": 1,
+  "secret_matches": 0,
+  "secret_scan_files": 6778,
+  "status": "PASS",
+  "token_source_type": "TUSHARE_LOOKUP",
+  "transport": "HTTPS_NO_REDIRECT"
+}

@@ -1,0 +1,30 @@
+{
+  "decision_id": "GOV-20260906-001",
+  "recorded_at": "2026-09-06T01:31:39+08:00",
+  "global_files": {
+    "project_registry.json": {
+      "before_sha256": "2aa959906b3d6d5f28141cd5270a75518ab6859100ce8178801000d5c485c03e",
+      "after_sha256": "d8a8dc9025cbf344410804bb6e455270e89f2093ab9dd0bc606e05b962c95153"
+    },
+    "governance_decisions.md": {
+      "before_sha256": "0660f9848315ab551d46687c510f1c0f35928226201f2c78663ac5b1eb87ef1b",
+      "after_sha256": "746f116b67cf4c242bb2ac8beee9470a6118972948dc6867f92849ee38951a30"
+    }
+  },
+  "implementation_files_verified": 33,
+  "unexplained_secret_literal_matches": [],
+  "evidence_hashes": {
+    "PROJECT_CONTRACT_V2.md": "8d605d695e7dc3f04f3f65ad2879aa6ae4752b0feae54e50042fcda151ddbc67",
+    "PROJECT_SPEC_V4.json": "3495ff8d9727bd2bdf1cb4f9fe14ccec2db1b9fb799f9871e15b6ed1efc2ff26",
+    "docs/reviews/GOV-20260906-001.md": "f12c04769d3b9268c6fdf5d28b88a1a2056b24bed690b36ca12065ada47d7fa3",
+    "docs/reviews/GOV-20260906-001-changes.json": "f18c4265c744bd434459e7bcf4372afefd788250f380f224075eb81daf6d14a6",
+    "docs/reviews/GOV-20260906-001.patch": "ae75e79098577b1112ef88a2a9ed2cb6455ea27ca8cc3917ff5e690db94e9135"
+  },
+  "governance_append_only": true,
+  "other_registry_projects_unchanged": true,
+  "chrome_e2e": "BLOCKED_MAC_LOCKED",
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED",
+  "real_tushare_calls": 0,
+  "real_data_updates": 0,
+  "formal_runtime_state_changes": false
+}

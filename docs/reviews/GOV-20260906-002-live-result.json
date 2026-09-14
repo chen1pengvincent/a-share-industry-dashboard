@@ -1,0 +1,41 @@
+{
+  "checks": [],
+  "data_scope": "SYSTEM_TEMP_ONLY",
+  "decision_id": "GOV-20260906-002",
+  "execution_status": "BLOCKED",
+  "failure": {
+    "exception_type": "V2ValidationError",
+    "message_withheld": true
+  },
+  "formal_inventory_unchanged": true,
+  "formal_published": false,
+  "parent_verified": {
+    "artifact_publish_state": "LOCAL_RESEARCH_CANDIDATE_COMPLETE",
+    "as_of": "20260901",
+    "decision_eligible": false,
+    "live_validation_state": "PASS",
+    "production_approved": false,
+    "provider_kind": "LIVE_SECURE_TUSHARE",
+    "purpose": "UPDATE_LATEST",
+    "research_grade": "RESEARCH_ONLY",
+    "run_id": "SWIVD2-RUN-20260901-002",
+    "schema_version": "swivd-local-snapshot-manifest-v3"
+  },
+  "protected_after": {
+    "root_agents": "3e19909c0b7134391571bc0ab56f5115bea65756fac4dac04773dd4b131da50a",
+    "run002": "6f8422dedaf820866e38b9d009a7f8c28a3945c527535dee46001509bcd49514",
+    "run004": "5180fd5eb20e2cd556a5a5066039fba676272d735ae2d91b9b798e59b33daea0",
+    "v1_latest": "2ec3ac30170773134b75822f5f95d580f54fe81985bcca3f3640c82c6eafff75",
+    "v1_ledger": "c3ffa8f8fdc2014c9e04d749624794f9ee6e8d02f592e5e9ddacae9c1a96d793",
+    "v2_latest": "bc4d537ea2688a5bd6643e0ab98a0b3194ce33ee0ed1d78ad43bb8c39332bfa7",
+    "v2_ledger": "3faf662c5e754570624b05bd2ef851b7898e67b48284aab022e9d2e77292e0d7"
+  },
+  "protected_unchanged": true,
+  "secret_scan": {
+    "checked_files": 2435,
+    "matches": 0
+  },
+  "source_modified": false,
+  "token_configured": true,
+  "token_source": "SDK_LOCAL"
+}

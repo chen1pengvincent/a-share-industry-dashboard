@@ -1,0 +1,91 @@
+{
+  "status": "PASS",
+  "kind": "ACTUAL_LAUNCHER_PROCESS_HTTP_SECURITY",
+  "doctor": {
+    "data_dir_accessible": true,
+    "data_dir_exists": false,
+    "data_dir_writable": true,
+    "dependencies_locked": true,
+    "dependencies_present": true,
+    "dependency_lock_valid": true,
+    "dependency_matches": {
+      "beautifulsoup4": true,
+      "bs4": true,
+      "certifi": true,
+      "charset-normalizer": true,
+      "colorama": true,
+      "idna": true,
+      "lxml": true,
+      "numpy": true,
+      "pandas": true,
+      "python-dateutil": true,
+      "requests": true,
+      "simplejson": true,
+      "six": true,
+      "soupsieve": true,
+      "tqdm": true,
+      "tushare": true,
+      "typing-extensions": true,
+      "tzdata": true,
+      "urllib3": true,
+      "websocket-client": true
+    },
+    "legacy_archive_available": true,
+    "loopback_host": true,
+    "port_available": true,
+    "python_supported": true,
+    "timezone_available": true,
+    "token_configured": true,
+    "token_source_type": "ENVIRONMENT"
+  },
+  "observations": [
+    {
+      "check": "/app.js",
+      "status": 200
+    },
+    {
+      "check": "/app.css",
+      "status": 200
+    },
+    {
+      "check": "/history.css",
+      "status": 200
+    },
+    {
+      "check": "/bootstrap.js",
+      "status": 200
+    },
+    {
+      "check": "MALICIOUS_HOST",
+      "status": 421
+    },
+    {
+      "check": "ORIGIN",
+      "status": 403
+    },
+    {
+      "check": "MISSING_NONCE",
+      "status": 403
+    },
+    {
+      "check": "PATH_TRAVERSAL",
+      "status": 404
+    },
+    {
+      "check": "DUPLICATE_PORT",
+      "status": "PORT_UNAVAILABLE"
+    }
+  ],
+  "process_argv_credential_matches": 0,
+  "output_and_http_credential_matches": 0,
+  "scanned_files": 8070,
+  "file_credential_matches": 0,
+  "actual_token_read": false,
+  "live_network_requests": "NO_UPDATE_JOB_CREATED",
+  "python_environment_injection": "IGNORED_WITH_ISOLATED_BUNDLED_RUNTIME",
+  "data_import": "FIRST_START_ATOMIC_STATE_READY",
+  "service_stopped": true,
+  "pointer_ledger_unchanged": true,
+  "browser_e2e": "NOT_RUN",
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED"
+}

@@ -1,0 +1,63 @@
+{
+  "decision_id": "GOV-20260906-004",
+  "execution_status": "PACKAGED_MAC_ARM64_VALIDATED_WITH_FOREIGN_PLATFORM_GAPS",
+  "artifact_publish_state": "LOCAL_RESEARCH_PORTABLE_ZIPS",
+  "live_validation_state": "MAC_ARM64_AUTHENTICATED_HTTPS_CALENDAR_PROBE_PASS",
+  "research_grade": "RESEARCH_ONLY",
+  "decision_eligible": false,
+  "production_approved": false,
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED",
+  "intel_macos_e2e": "INTEL_MACOS_E2E_UNVERIFIED",
+  "browser_e2e_this_turn": "NOT_RUN",
+  "new_live_update_job": "NOT_RUN",
+  "unittest": {
+    "collected": 49,
+    "passed": 49,
+    "failed": 0,
+    "skipped": 0
+  },
+  "archives": [
+    {
+      "archive": "SWIVD-2.3.0-portable.1-macos-arm64.zip",
+      "bytes": 152699595,
+      "manifest_sha256": "c7687dba65fed1b6b2df8797b9994c1fcfc40d8841af235c3df6714a674e4d7c",
+      "package_files": 6777,
+      "seed_run_id": "SWIVD2-RUN-20260904-001",
+      "sha256": "24f7c21c0450f25725ee0da824aaba8b93337e6cc18792acf1f7919c209efb17",
+      "target": "macos-arm64"
+    },
+    {
+      "archive": "SWIVD-2.3.0-portable.1-macos-x86_64.zip",
+      "bytes": 155221554,
+      "manifest_sha256": "0cccc2fcdee3da536ae8398264c5dad1b6881dbb446172aa3d811d9f08ea0a5d",
+      "package_files": 6774,
+      "seed_run_id": "SWIVD2-RUN-20260904-001",
+      "sha256": "b7f36c8b28a336baaab9c51d7ff19ec2d92d24c96638ce7f53a895d883b74559",
+      "target": "macos-x86_64"
+    },
+    {
+      "archive": "SWIVD-2.3.0-portable.1-windows-x86_64.zip",
+      "bytes": 115464083,
+      "manifest_sha256": "0a0e1deda7e4979d046b0bbc9c7c0b3c8fed83972201942122eb5ba1c02742af",
+      "package_files": 5185,
+      "seed_run_id": "SWIVD2-RUN-20260904-001",
+      "sha256": "41979cce706a69d5214047a166dbc48b11a1243d63cb73f6db804f79fc93f95e",
+      "target": "windows-x86_64"
+    }
+  ],
+  "evidence_files_sha256": {
+    "GOV-20260906-004-native.json": "8c94d2f90111e9adc18c908ade5f0847fa098d0868144f5cfaca241922feff57",
+    "GOV-20260906-004-foreign.json": "275edf62243ca567b30fe070209a0a20f2d3e237a9f1e02529171c56c7e407e1",
+    "GOV-20260906-004-live.json": "5957c7e55a4420666f24cedd07b18d92e4278928c83b767e92173f7e4eb42c66",
+    "GOV-20260906-004-live-initial.json": "079614a383618a567699d4109388f6ae4b9a1afa12785bb283fba689278c964f",
+    "GOV-20260906-004-security.json": "90b8f38a2a079bb58394472c8dbfc74eb6c78333f1ba11dd8e85fa89c3231358",
+    "GOV-20260906-004-security-stdout.txt": "3d00183a74b40050190258be7b357ae9222279c233b8fecf8412444d53c29621",
+    "GOV-20260906-004-security-stderr.txt": "8787c51d5fc98470f76d2c14e578a06969bf6d0fb22c2670d0f392fd5f496752",
+    "GOV-20260906-004-tests.log": "3db15286c41b6893c19de26343ba685edc6abea6e87477f4dbeac5cec6e9a2c9",
+    "GOV-20260906-004-before.json": "7fc0df0018498aa5e4d03330e080c80e998bc7830c2c0b763263e1e357f79cdd",
+    "GOV-20260906-004-security-harness.txt": "2698e1e1f1378e272189441c8718eef2310d3e9700ad00e58f3e12100f1a4732",
+    "GOV-20260906-004-live-harness.txt": "d993d86aa5960e75774d548a6fa0fcaba7c7f117f94fd9cfd69254402d957bd5",
+    "GOV-20260906-004-foreign-harness.txt": "07ed21eee0c8a5f2246b1589ee48e355d1382c5bf98c0bb84a950ddb4136707c"
+  },
+  "rollback": "Remove only this decision new portable files and local bundles after hash check; append revocation; never alter formal data."
+}

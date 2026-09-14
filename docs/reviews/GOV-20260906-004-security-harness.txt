@@ -1,0 +1,176 @@
+"""Temporary actual-launcher acceptance; fake credential only, no update calls."""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import http.client
+import json
+import os
+from pathlib import Path
+import signal
+import socket
+import subprocess
+import tempfile
+import time
+
+
+def require(condition, code):
+    if not condition:
+        raise RuntimeError(code)
+
+
+def scan(path, needle):
+    carry = b""
+    with path.open("rb") as stream:
+        while block := stream.read(1024 * 1024):
+            if needle in carry + block:
+                return True
+            carry = block[-len(needle):]
+    return False
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--package", type=Path, required=True)
+    parser.add_argument("--evidence", type=Path, required=True)
+    args = parser.parse_args()
+    root = args.package.resolve()
+    evidence = args.evidence.resolve()
+    temporary_roots = (Path(tempfile.gettempdir()).resolve(), Path("/private/tmp"))
+    require(any(root != p and root.is_relative_to(p) for p in temporary_roots), "TEMP_PACKAGE_REQUIRED")
+    require(any(evidence != p and evidence.is_relative_to(p) for p in temporary_roots), "TEMP_EVIDENCE_REQUIRED")
+    require(not evidence.exists(), "EVIDENCE_ALREADY_EXISTS")
+    evidence.mkdir()
+    require(not (root / "data").exists(), "FRESH_PACKAGE_REQUIRED")
+    canary = "SYNTHETIC_PORTABLE_HTTP_" + "MEMORY_ONLY_CREDENTIAL"
+    needle = canary.encode()
+    injection = evidence / "ignored-python-environment"
+    injection.mkdir()
+    (injection / "sitecustomize.py").write_text("raise RuntimeError('PYTHON_ENV_INJECTION_EXECUTED')\n")
+    environment = {
+        "PATH": "/usr/bin:/bin", "LANG": "en_US.UTF-8", "LC_ALL": "en_US.UTF-8",
+        "TUSHARE_TOKEN": canary, "PYTHONHOME": str(injection), "PYTHONPATH": str(injection),
+    }
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    base = ["/bin/sh", str(root / "Start-Mac.command")]
+    print("ACTUAL_LAUNCHER_DOCTOR", flush=True)
+    doctor_process = subprocess.run(base + ["doctor", "--port", str(port)], cwd=evidence,
+                                    env=environment, capture_output=True, timeout=900)
+    require(needle not in doctor_process.stdout + doctor_process.stderr, "DOCTOR_CREDENTIAL_LEAK")
+    require(doctor_process.returncode == 0, "DOCTOR_PROCESS_FAILED")
+    doctor = json.loads(doctor_process.stdout)
+    for key in ("dependencies_locked", "timezone_available", "legacy_archive_available", "token_configured", "port_available"):
+        require(doctor.get(key) is True, "DOCTOR_CHECK_FAILED_" + key.upper())
+    require(not (root / "data").exists(), "DOCTOR_WROTE_DATA")
+    print("ACTUAL_LAUNCHER_STARTING", flush=True)
+    process = subprocess.Popen(base + ["serve", "--port", str(port)], cwd=evidence,
+                               env=environment, stdin=subprocess.DEVNULL,
+                               stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    observations = []
+    def request(method, route, *, headers=None, body=None, timeout=300):
+        connection = http.client.HTTPConnection("127.0.0.1", port, timeout=timeout)
+        try:
+            connection.request(method, route, headers=headers or {}, body=body)
+            response = connection.getresponse()
+            payload = response.read()
+            require(needle not in payload, "HTTP_CREDENTIAL_LEAK")
+            values = dict(response.getheaders())
+            require("Access-Control-Allow-Origin" not in values, "CORS_UNEXPECTED")
+            require("default-src 'self'" in values.get("Content-Security-Policy", ""), "CSP_MISSING")
+            return response.status, payload
+        finally:
+            connection.close()
+    forced_kill = False
+    try:
+        deadline = time.monotonic() + 900
+        while True:
+            require(process.poll() is None, "SERVICE_EXITED_BEFORE_READY")
+            try:
+                status, body = request("GET", "/", timeout=2)
+                if status == 200:
+                    break
+            except (OSError, http.client.HTTPException):
+                pass
+            require(time.monotonic() < deadline, "SERVICE_START_TIMEOUT")
+            time.sleep(0.5)
+        print("ACTUAL_LAUNCHER_HTTP_READY", flush=True)
+        require(b"<!doctype html>" in body.lower(), "HTML_MISSING")
+        for route in ("/app.js", "/app.css", "/history.css", "/bootstrap.js"):
+            status, payload = request("GET", route)
+            require(status == 200 and bool(payload), "STATIC_ASSET_FAILED")
+            observations.append({"check": route, "status": status})
+        status, payload = request("GET", "/api/v1/snapshots/current")
+        current = json.loads(payload)
+        require(status == 200 and current.get("run_id") == "SWIVD2-RUN-20260904-001", "CURRENT_MISMATCH")
+        status, payload = request("GET", "/?safety_probe=" + canary)
+        require(status == 200, "SECRET_QUERY_TEST_FAILED")
+        status, payload = request("GET", "/", headers={"Host": "malicious.example"})
+        require(status == 421, "HOST_GATE_FAILED")
+        observations.append({"check": "MALICIOUS_HOST", "status": status})
+        for headers, label in (({"Origin": "https://malicious.example"}, "ORIGIN"),
+                               ({"Origin": "http://127.0.0.1:" + str(port)}, "MISSING_NONCE")):
+            headers["Content-Type"] = "application/json"
+            status, payload = request("POST", "/api/v1/jobs", headers=headers, body=b'{"kind":"UPDATE_LATEST"}')
+            require(status == 403, "POST_SECURITY_GATE_FAILED")
+            observations.append({"check": label, "status": status})
+        status, payload = request("GET", "/%2e%2e/package-manifest.json")
+        require(status == 404, "TRAVERSAL_GATE_FAILED")
+        observations.append({"check": "PATH_TRAVERSAL", "status": status})
+        command = subprocess.run(["/bin/ps", "-p", str(process.pid), "-o", "command="],
+                                 capture_output=True, timeout=10)
+        require(command.returncode == 0 and needle not in command.stdout, "PROCESS_ARGV_CREDENTIAL_LEAK")
+        require(b"runtime/bin/python3.14" in command.stdout, "WRONG_PYTHON_PROCESS")
+        print("ACTUAL_LAUNCHER_DUPLICATE_PORT", flush=True)
+        conflict = subprocess.run(base + ["serve", "--port", str(port)], cwd=evidence, env=environment,
+                                  stdin=subprocess.DEVNULL, capture_output=True, timeout=900)
+        require(conflict.returncode == 1 and b"PORT_UNAVAILABLE" in conflict.stderr, "DUPLICATE_PORT_NOT_REJECTED")
+        require(needle not in conflict.stdout + conflict.stderr, "DUPLICATE_OUTPUT_CREDENTIAL_LEAK")
+        observations.append({"check": "DUPLICATE_PORT", "status": "PORT_UNAVAILABLE"})
+    finally:
+        if process.poll() is None:
+            process.send_signal(signal.SIGINT)
+        try:
+            stdout, stderr = process.communicate(timeout=30)
+        except subprocess.TimeoutExpired:
+            forced_kill = True
+            process.kill()
+            stdout, stderr = process.communicate(timeout=30)
+        require(needle not in stdout + stderr, "SERVICE_LOG_CREDENTIAL_LEAK")
+        (evidence / "launcher-stdout.txt").write_bytes(stdout)
+        (evidence / "launcher-stderr.txt").write_bytes(stderr)
+    require(not forced_kill, "SERVICE_REQUIRED_FORCED_KILL")
+    require(process.returncode == 130, "SERVICE_INTERRUPT_EXIT_MISMATCH")
+    with socket.socket() as probe:
+        require(probe.connect_ex(("127.0.0.1", port)) != 0, "SERVICE_STILL_LISTENING")
+    state = root / "data" / "state"
+    require((state / "latest_run.json").read_bytes() == (root / "seed-data" / "latest_run.json").read_bytes(), "POINTER_CHANGED")
+    require((state / "run_ledger.ndjson").read_bytes() == (root / "seed-data" / "run_ledger.ndjson").read_bytes(), "LEDGER_CHANGED")
+    require(not list((state / "jobs").glob("*.json")), "UNEXPECTED_JOB_CREATED")
+    require(not (state / "transactions" / "publication.json").exists(), "PUBLICATION_TRANSACTION_REMAINS")
+    count = 0
+    for tree in (root, evidence):
+        for path in tree.rglob("*"):
+            if path.is_file():
+                require(not scan(path, needle), "FILE_CREDENTIAL_LEAK")
+                count += 1
+    result = {"status": "PASS", "kind": "ACTUAL_LAUNCHER_PROCESS_HTTP_SECURITY",
+              "doctor": doctor, "observations": observations,
+              "process_argv_credential_matches": 0, "output_and_http_credential_matches": 0,
+              "scanned_files": count, "file_credential_matches": 0,
+              "actual_token_read": False, "live_network_requests": "NO_UPDATE_JOB_CREATED",
+              "python_environment_injection": "IGNORED_WITH_ISOLATED_BUNDLED_RUNTIME",
+              "data_import": "FIRST_START_ATOMIC_STATE_READY", "service_stopped": True,
+              "pointer_ledger_unchanged": True, "browser_e2e": "NOT_RUN",
+              "windows_e2e": "WINDOWS_E2E_UNVERIFIED"}
+    (evidence / "result.json").write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
+    print(json.dumps(result, ensure_ascii=False), flush=True)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:
+        print("HARNESS_FAILED " + (str(exc) if isinstance(exc, RuntimeError) else type(exc).__name__), flush=True)
+        raise SystemExit(1) from None

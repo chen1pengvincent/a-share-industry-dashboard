@@ -1,0 +1,239 @@
+{
+  "decision_id": "GOV-20260906-001",
+  "scope": "Batch 1 implementation files only; review evidence and global governance append are separately listed in the report",
+  "non_git": true,
+  "backup_root": "/private/tmp/swivd-v23-preflight.g016zG/project",
+  "files": [
+    {
+      "path": "PROJECT_CONTRACT_V2.md",
+      "action": "MODIFY",
+      "before_sha256": "3ca7ca326ca1e9520462eb2eaec3683c50a5b066a4fd0934aecad14100425904",
+      "after_sha256": "8d605d695e7dc3f04f3f65ad2879aa6ae4752b0feae54e50042fcda151ddbc67",
+      "diff_chars": 4230
+    },
+    {
+      "path": "PROJECT_SPEC_V4.json",
+      "action": "MODIFY",
+      "before_sha256": "4ca68fbc0eeabdf8ae8afe1092d7cfaaabd01977003c0aca37e1daa00763d541",
+      "after_sha256": "3495ff8d9727bd2bdf1cb4f9fe14ccec2db1b9fb799f9871e15b6ed1efc2ff26",
+      "diff_chars": 1374
+    },
+    {
+      "path": "README.md",
+      "action": "MODIFY",
+      "before_sha256": "319677e278f6f43588c54a42b55db4a0f99b64bfcc5725d09a0f1b5a096fa3fc",
+      "after_sha256": "7bbbd9ecf50b42b26d0ebf5d319f81457040671d9cd0d6ce3473707b829dee64",
+      "diff_chars": 2696
+    },
+    {
+      "path": "docs/architecture.md",
+      "action": "MODIFY",
+      "before_sha256": "7995baadab1b2c46fc5cf4c6896acde72db8711cc22f7783edc298842094ad0f",
+      "after_sha256": "7591d7dde0bd5d57a4074a288ade82b4ef004989cf2c3a138077b570cef9df96",
+      "diff_chars": 1301
+    },
+    {
+      "path": "docs/data_dictionary.md",
+      "action": "MODIFY",
+      "before_sha256": "7f8b0484c5f0435cccb5c617fc248bbc10547110e60120dacc787e071510cda3",
+      "after_sha256": "1f4f0f9bc961ede3c425e4299b63b01b129b7570bacb5bb139dbf9afbf99f493",
+      "diff_chars": 1512
+    },
+    {
+      "path": "docs/runbook.md",
+      "action": "MODIFY",
+      "before_sha256": "99cbcd635007b1268ce0d0ac4fec7f806238ac42da3bbcd473321a7dcc1a095c",
+      "after_sha256": "aca7d6d7bf854978238b029508c56cfc81ff0670948b4df2c829a2239db4cca3",
+      "diff_chars": 3717
+    },
+    {
+      "path": "pyproject.toml",
+      "action": "MODIFY",
+      "before_sha256": "41777023e595ba79157e7fe4fa42b0748b175faab92c6428b2309cdc2af32497",
+      "after_sha256": "562ae3a4239f096a831f2683db0739fb685d8e9eefbc64c63bbb657f7365ae52",
+      "diff_chars": 347
+    },
+    {
+      "path": "requirements.lock",
+      "action": "MODIFY",
+      "before_sha256": "11a6e0d3c6eab490421f18ef702fa163f764eaf5476df32ec7ae68fbf831d1ee",
+      "after_sha256": "a6b75f29a1dce4ba34efa32867cec7a97eaeb48e6d905f7a89bc03effc1a44ea",
+      "diff_chars": 46103
+    },
+    {
+      "path": "run_dashboard.py",
+      "action": "MODIFY",
+      "before_sha256": "95dd5b0f94450b09973413d1d0a17149602db6dccf6911e8a7dfe4fc8e9e3d2f",
+      "after_sha256": "d4c9728c184cb319f8499735af23d3fb4cde7c4a00f06fe3328cdae765c20c0e",
+      "diff_chars": 4411
+    },
+    {
+      "path": "src/swivd/runtime_environment.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "d113c91df57b62de7368d6bb4731989b7ea4389dcac13be11f8a7d2fe6fbd6ae",
+      "diff_chars": 6328
+    },
+    {
+      "path": "src/swivd/tushare_client.py",
+      "action": "MODIFY",
+      "before_sha256": "2eb945c59e128e07dd44f4e761253f4c83a98547e5b3b3b203cde2ba5a94c6f5",
+      "after_sha256": "9f604387c33d264d89f49ca92b59aba27fc1ce39d61e55e5fd5ba8cc015498a3",
+      "diff_chars": 2020
+    },
+    {
+      "path": "src/swivd/v2_domain.py",
+      "action": "MODIFY",
+      "before_sha256": "eeb88995f0d3723008adfabd780cf060d90b174f1def8ddfb35d78747f7f40f8",
+      "after_sha256": "4724ba052fdda6b23848e80783c472a888d352b113acbb9a15c1d8634e92f3cd",
+      "diff_chars": 2083
+    },
+    {
+      "path": "src/swivd/v2_identity.py",
+      "action": "MODIFY",
+      "before_sha256": "4054703ec7a95efccd02fcc7483adce1fbe5a66514ed17c3080edbea97817e46",
+      "after_sha256": "340e428a767bc1c85a4fcea9ccf238e517d56dead05c14940b81d73cfb175132",
+      "diff_chars": 5425
+    },
+    {
+      "path": "src/swivd/v2_jobs.py",
+      "action": "MODIFY",
+      "before_sha256": "37c9519e6e78e15decc2faf678ee02d992ddd4d3ce990693bedf066bbc2570ee",
+      "after_sha256": "b4968ef78bac5b2273f592ad6ce6ff9390556b38e13e46fce9f5cfea359d5a70",
+      "diff_chars": 9700
+    },
+    {
+      "path": "src/swivd/v2_lineage.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "87ee846497bb7a74c9b20cfe85080ea23051e7ddc97b7c08f3b43927c41c17a0",
+      "diff_chars": 7917
+    },
+    {
+      "path": "src/swivd/v2_pipeline.py",
+      "action": "MODIFY",
+      "before_sha256": "211c0eb8396cde188952ba76fcd14fb20202eb7fd0e7175dea5b553d060e6788",
+      "after_sha256": "20bba1ad4b14dd02eb0ea83af50145c25531c9e3054932f5ceb7201bc88c635e",
+      "diff_chars": 6053
+    },
+    {
+      "path": "src/swivd/v2_server.py",
+      "action": "MODIFY",
+      "before_sha256": "901368a16ea76780fd865709f87756d97de50108586644198797c112365684b5",
+      "after_sha256": "f2a5e9957e16cabc7a5aa02ace13d948f2d692f3bde0cff759bc780465681859",
+      "diff_chars": 5529
+    },
+    {
+      "path": "src/swivd/v2_storage.py",
+      "action": "MODIFY",
+      "before_sha256": "8bea6e230d46ea6debeb817b6b152574a1f9930fcb34a10dfb3155f2819f4846",
+      "after_sha256": "6c42832cd957f8fdc6bec8609d737d9496eecf3c46545a61aec912e42d6f5d79",
+      "diff_chars": 835
+    },
+    {
+      "path": "src/swivd/v2_validator.py",
+      "action": "MODIFY",
+      "before_sha256": "23b6458334a038c3bfd05ab391bc3bfc8ee5f2cb187b58443795a605ea1b3967",
+      "after_sha256": "6ee21f9b6c620526d45df38214c5a1b3610e91c32b422877b5405262c411841b",
+      "diff_chars": 14002
+    },
+    {
+      "path": "src/swivd/validator.py",
+      "action": "MODIFY",
+      "before_sha256": "4160aeae80a7b64986982e9a08e24512c878e8d6ffed7e0a59d6dc44211fd172",
+      "after_sha256": "f96a91f654dc67bc537c962f1a15bec300e2a25cafe55b01d1dfa6c8138e6ea4",
+      "diff_chars": 574
+    },
+    {
+      "path": "start_macos.command",
+      "action": "MODIFY",
+      "before_sha256": "7f52f35b344ae8eef84efc1f2e917be0802b3f60f3a4d19af8f0b899350127a5",
+      "after_sha256": "e57cefd99f7d2a920e9cd3efc173125bf31e140cd914faa699a6269011b4bcad",
+      "diff_chars": 1047
+    },
+    {
+      "path": "start_windows.cmd",
+      "action": "MODIFY",
+      "before_sha256": "810d5a4c8a9e6348a0614fb1a0e602581a97b7e6643b0d0975f4102aa21cbd1b",
+      "after_sha256": "a4ae02504a82b67a866627bda833cf3e5981a183badb6a2b6c2d5342b2493456",
+      "diff_chars": 1238
+    },
+    {
+      "path": "tests/test_v2.py",
+      "action": "MODIFY",
+      "before_sha256": "70e15710b97560624399d0e132713af3dc3f221e12910ef9142a7d75cf6dfaf0",
+      "after_sha256": "fd919b5c05ce4f505b9240581b445516ebf421e4a3d38af0b2d26c867dedc376",
+      "diff_chars": 1175
+    },
+    {
+      "path": "tests/test_v23_credentials.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "0d3f0b7f531394b3527e19fb98a2bd9ef67982c194cec9cc07cb478316c6eecb",
+      "diff_chars": 8956
+    },
+    {
+      "path": "tests/test_v23_data.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "1a6e7cf2c601b4b5ab20ac9fb9747ae5490c26ce9b7f665d9910216efdbc4d36",
+      "diff_chars": 28434
+    },
+    {
+      "path": "tests/test_v23_lineage.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "d33e4318ff856344e2c7b6e539fce0691f5b74f2ea28b759c0fb1a70a42331f9",
+      "diff_chars": 5830
+    },
+    {
+      "path": "tests/test_v23_portability.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "ac9b58651328d355abafda8e312b5212447fa085b3c2d2f8623ad9329c4dae19",
+      "diff_chars": 16477
+    },
+    {
+      "path": "tests/test_v23_runtime.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "72e2e91acb7d6be0f5016e4626892e8afc2b29c8dcbe227d2131ae41d490fa37",
+      "diff_chars": 15449
+    },
+    {
+      "path": "tests/test_v23_ui.py",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "2d23e0bbfb0e06eb973a0f273105e802a40a2f3324cc3098fe731fffe7d547fa",
+      "diff_chars": 2613
+    },
+    {
+      "path": "tests/v23_ui_behavior.cjs",
+      "action": "ADD",
+      "before_sha256": null,
+      "after_sha256": "12b33cd52505a0afe2979336a89244bf2029e383193d5ee414985a79107b6a38",
+      "diff_chars": 15373
+    },
+    {
+      "path": "web/app.css",
+      "action": "MODIFY",
+      "before_sha256": "d9a0df46f804d42f44433e7295efc8864c66955d13be8995c1f72edf7d8755ab",
+      "after_sha256": "1235e7a7a07050d938804b2b931eb59849aba648bf9b345635c16f9216a35ec0",
+      "diff_chars": 573
+    },
+    {
+      "path": "web/app.js",
+      "action": "MODIFY",
+      "before_sha256": "bc3d2cd4414f331735d0147761611a829edd94d4907f33017d8ebe7b5c4f7784",
+      "after_sha256": "8b89a6d0f67d5ce06c0512b8ddc0c06074fc8fce2867d0b821329f3da2b7f0af",
+      "diff_chars": 22792
+    },
+    {
+      "path": "web/index.html",
+      "action": "MODIFY",
+      "before_sha256": "c44de33e68226b2506c01534f43fb346e5d5578a2cb77275f7bb1b788d5268f6",
+      "after_sha256": "19074c1ef7cfbdf0c46afe24d75ae2046a5ad9961487ad7528402beed3edcf32",
+      "diff_chars": 2010
+    }
+  ]
+}

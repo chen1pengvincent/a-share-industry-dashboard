@@ -1,0 +1,149 @@
+"""GOV-20260906-003: real provider, temporary data only; never emit secrets."""
+from __future__ import annotations
+
+import contextlib
+import hashlib
+import io
+import json
+import os
+from pathlib import Path
+import re
+import shutil
+import sys
+import time
+from decimal import Decimal
+
+ROOT = Path('/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard')
+FORMAL = Path('/Users/chenyipeng/Library/Application Support/swivd')
+BASE = Path('/private/tmp/swivd-packaging-fix.YUp0LZ')
+DATA = BASE / 'data'
+OLD_ID = 'SWIVD2-RUN-20260901-002'
+OUT = sys.stdout
+sys.path.insert(0, str(ROOT / 'src'))
+from swivd.io_utils import atomic_write_bytes, write_json, sha256_file
+from swivd import tushare_client as tc
+from swivd.v2_pipeline import execute_locked, execute_update_locked, rebuild_v2, resolve_update_target
+from swivd.v2_validator import validate_run_v2
+
+def emit(value):
+    print(json.dumps(value, ensure_ascii=False, default=str), file=OUT, flush=True)
+
+def save(name, value):
+    write_json(BASE / name, json.loads(json.dumps(value, ensure_ascii=False, default=str)))
+
+def inventory(root):
+    return {p.relative_to(root).as_posix(): sha256_file(p)
+            for p in sorted(root.rglob('*')) if p.is_file() and not p.is_symlink()}
+
+def protected():
+    paths = {
+        'root_agents': ROOT.parent / 'AGENTS.md',
+        'v1_latest': ROOT / 'output/latest_run.json',
+        'v1_ledger': ROOT / 'output/run_ledger.ndjson',
+        'v2_latest': FORMAL / 'latest_run.json',
+        'v2_ledger': FORMAL / 'run_ledger.ndjson',
+        'run004': ROOT / 'output/runs/SWIVD-RUN-20260828-004/manifest.json',
+        'run002': FORMAL / 'runs' / OLD_ID / 'manifest.json',
+    }
+    return {k: sha256_file(v) for k, v in paths.items()}
+
+def safe_error(exc):
+    code = getattr(exc, 'code', None)
+    result = {'exception_type': type(exc).__name__, 'message_withheld': True}
+    if isinstance(code, int) or isinstance(code, str) and re.fullmatch('[A-Z0-9_]{1,100}', code):
+        result['code'] = code
+    return result
+
+def subset(manifest):
+    keys = ('run_id', 'as_of', 'purpose', 'schema_version', 'provider_kind',
+            'live_validation_state', 'artifact_publish_state', 'research_grade',
+            'decision_eligible', 'production_approved', 'target_selection')
+    return {k: manifest[k] for k in keys if k in manifest}
+
+last = [None, 0.0]
+def progress(phase, completed, total, item):
+    now = time.monotonic()
+    if phase != last[0] or now-last[1] >= 15:
+        emit({'stage': phase, 'completed': completed, 'total': total})
+        last[:] = [phase, now]
+
+def main():
+    os.umask(0o077)
+    state = {'decision_id': 'GOV-20260906-003', 'data_scope': 'SYSTEM_TEMP_ONLY',
+             'source_modified': True, 'formal_published': False, 'checks': []}
+    before = protected()
+    formal_before = inventory(FORMAL)
+    save('protected-before.json', before)
+    save('formal-inventory-before.json', formal_before)
+    token = None
+    try:
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            token = tc.load_tushare_token()
+        state['token_configured'] = True
+        state['token_source'] = 'ENVIRONMENT' if os.environ.get('TUSHARE_TOKEN', '').strip() else 'SDK_LOCAL'
+        emit({'token_configured': True, 'source_type': state['token_source']})
+        # No client injection or monkeypatching: the production client/provider run unchanged.
+        # All library stdout/stderr is suppressed; only this driver's selected fields are emitted.
+        with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+            old = json.loads((FORMAL / 'runs' / OLD_ID / 'manifest.json').read_text())
+            assert sha256_file(FORMAL / 'runs' / OLD_ID / 'manifest.json') == before['run002']
+            assert before['run002'] == '6f8422dedaf820866e38b9d009a7f8c28a3945c527535dee46001509bcd49514'
+            DATA.mkdir()
+            (DATA / 'runs').mkdir()
+            shutil.copytree(FORMAL / 'runs' / OLD_ID, DATA / 'runs' / OLD_ID)
+            shutil.copyfile(FORMAL / 'latest_run.json', DATA / 'latest_run.json')
+            state['parent_manifest_anchored'] = subset(old)
+            for purpose, as_of in (('UPDATE_LATEST', None), ('MATERIALIZE_DATE', '20260901')):
+                pointer_before = sha256_file(DATA / 'latest_run.json')
+                emit({'operation': purpose, 'starting': True})
+                if purpose == 'UPDATE_LATEST':
+                    def selected(target):
+                        save('target.json', target.as_dict())
+                        emit({'target_selection': target.as_dict()})
+                    manifest = execute_update_locked(spec_path=ROOT / 'PROJECT_SPEC_V4.json', data_dir=DATA, progress=progress, target_selected=selected)
+                else:
+                    manifest = execute_locked(spec_path=ROOT / 'PROJECT_SPEC_V4.json', data_dir=DATA,
+                                              as_of=as_of, purpose=purpose, progress=progress)
+                assert manifest['provider_kind'] == 'LIVE_SECURE_TUSHARE'
+                run = DATA / 'runs' / manifest['run_id']
+                pointer_after = sha256_file(DATA / 'latest_run.json')
+                if purpose == 'MATERIALIZE_DATE':
+                    assert pointer_before == pointer_after
+                check = {**subset(manifest), 'pipeline_validator': 'PASS',
+                         'manifest_sha256': sha256_file(run / 'manifest.json'),
+                         'pointer_unchanged': pointer_before == pointer_after}
+                state['checks'].append(check)
+                save('live-result.json', state)
+                emit(check)
+        state['execution_status'] = 'LIVE_ISOLATED_PIPELINES_PASS'
+    except BaseException as exc:
+        state['execution_status'] = 'BLOCKED'
+        state['failure'] = safe_error(exc)
+        emit({'status': 'BLOCKED', **state['failure']})
+    finally:
+        state['protected_after'] = protected()
+        state['protected_unchanged'] = state['protected_after'] == before
+        formal_after = inventory(FORMAL)
+        state['formal_inventory_unchanged'] = formal_before == formal_after
+        if not state['protected_unchanged'] or not state['formal_inventory_unchanged']:
+            state['execution_status'] = 'BLOCKED_PROTECTED_STATE_CHANGED'
+        save('formal-inventory-after.json', formal_after)
+        if token is not None:
+            needle = token.encode()
+            variants = {needle, json.dumps(token, ensure_ascii=True)[1:-1].encode()}
+            checked_files = 0
+            hits = 0
+            for p in BASE.rglob('*'):
+                if p.is_file() and not p.is_symlink():
+                    checked_files += 1
+                    payload = p.read_bytes()
+                    hits += int(any(v in payload for v in variants))
+            state['secret_scan'] = {'checked_files': checked_files, 'matches': hits}
+            if hits:
+                state['execution_status'] = 'BLOCKED_SECRET_SCAN'
+        save('live-result.json', state)
+        emit({k: v for k, v in state.items() if k not in ('protected_after','parent_manifest_anchored','checks')})
+    return 0 if state.get('execution_status') == 'LIVE_ISOLATED_PIPELINES_PASS' else 1
+
+if __name__ == '__main__':
+    sys.exit(main())

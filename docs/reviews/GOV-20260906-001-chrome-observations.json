@@ -1,0 +1,117 @@
+{
+  "decision_id": "GOV-20260906-001",
+  "observed_at": "2026-09-06T10:21:20+08:00",
+  "chrome": "152.0.7977.76",
+  "scope": "REAL_BROWSER_REAL_UI_CONTROLLED_NON_NETWORK_WORKER",
+  "observations": [
+    {
+      "case": "L1",
+      "catalog": 31,
+      "published": 31,
+      "as_of": "20260901"
+    },
+    {
+      "case": "L2",
+      "catalog": 134,
+      "published": 124,
+      "as_of": "20260901"
+    },
+    {
+      "case": "L3",
+      "catalog": 346,
+      "published": 259,
+      "as_of": "20260901"
+    },
+    {
+      "case": "constituent_units_coverage_search",
+      "unchanged": true,
+      "filtered_rows": 1,
+      "stock": "000708.SZ",
+      "pe_ttm_percentile": "22.22%",
+      "pe_valid_N": 9,
+      "pb_valid_N": 12,
+      "members": 13,
+      "pe_coverage": "69.23%",
+      "pb_coverage": "92.31%",
+      "total_mv_yi": "689.95",
+      "dv_ttm_percent": "4.72%",
+      "worker_state": "INDUSTRY_DATA"
+    },
+    {
+      "case": "refresh_restores_active_job",
+      "percent": 38,
+      "update_enabled": false,
+      "snapshot": "SWIVD2-RUN-20260901-002"
+    },
+    {
+      "case": "sort_ascending_keyboard",
+      "missing_at_zero_based": 124,
+      "rows": 134,
+      "ordered": true,
+      "nulls_last": true
+    },
+    {
+      "case": "sort_descending_keyboard",
+      "missing_at_zero_based": 124,
+      "rows": 134,
+      "ordered": true,
+      "nulls_last": true
+    },
+    {
+      "case": "unpublished_industry",
+      "name": "本地生活服务Ⅱ",
+      "code": "801217.SI",
+      "published": "官方未发布",
+      "pe": null,
+      "pb": null
+    },
+    {
+      "case": "worker_failure_keeps_snapshot",
+      "state": "FAILED",
+      "safe_message_code": "DAILY_BASIC_EMPTY",
+      "percent": 38,
+      "update_enabled": true,
+      "snapshot": "SWIVD2-RUN-20260901-002"
+    },
+    {
+      "case": "sw2014_archive",
+      "options": 28,
+      "industry": "钢铁",
+      "metric": "PB",
+      "valid": 1935,
+      "date_start": "20140102",
+      "date_end": "20211210"
+    },
+    {
+      "case": "controlled_already_up_to_date",
+      "state": "SUCCEEDED",
+      "safe_message_code": "ALREADY_UP_TO_DATE",
+      "percent": 100,
+      "ready_visible": false,
+      "snapshot": "SWIVD2-RUN-20260901-002"
+    },
+    {
+      "case": "real_gap_history",
+      "name": "焦炭Ⅱ",
+      "code": "801952.SI",
+      "metric": "PE",
+      "valid": 1033,
+      "missing": 112,
+      "date_start": "20211213",
+      "date_end": "20260901",
+      "last_valid": "20260901",
+      "last_valid_value": 593.06,
+      "series_line_paths": 2,
+      "series_area_paths": 2
+    },
+    {
+      "case": "scatter_keyboard_enter",
+      "selected_tab": "行业成分",
+      "industry": "焦炭Ⅱ"
+    },
+    {
+      "case": "console",
+      "errors_and_warnings": []
+    }
+  ]
+}

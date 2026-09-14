@@ -1,0 +1,68 @@
+"""Independent process: deny networking, migrate one run at a time, rebuild."""
+from pathlib import Path
+import json
+import shutil
+import sys
+
+BASE = Path('/private/tmp/swivd-packaging-fix.YUp0LZ')
+ROOT = Path('/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard')
+sys.path.insert(0, str(ROOT / 'src'))
+def deny_network(event, args):
+    if event in {'socket.connect', 'socket.getaddrinfo', 'socket.gethostbyname'}:
+        raise RuntimeError('OFFLINE_NETWORK_DENIED')
+sys.addaudithook(deny_network)
+from swivd.io_utils import read_json, write_json, sha256_file
+from swivd.v2_pipeline import rebuild_v2
+from swivd.v2_storage import SingleWriterLock
+from swivd.v2_validator import validate_run_v2
+
+def main():
+    result = read_json(BASE / 'live-result.json')
+    assert result['execution_status'] == 'LIVE_ISOLATED_PIPELINES_PASS'
+    assert result['protected_unchanged'] is True
+    assert result['formal_inventory_unchanged'] is True
+    assert result['secret_scan']['matches'] == 0
+    assert len(result['checks']) == 2
+    assert result['checks'][1]['purpose'] == 'MATERIALIZE_DATE'
+    assert result['checks'][1]['pointer_unchanged'] is True
+    migrated = BASE / '中文 空格 迁移'
+    migrated.mkdir(parents=True)
+    evidence = {'network_policy': 'DENY_SOCKET_CONNECT_AND_DNS', 'runs': [],
+                'protected_state_hard_gate': 'PASS', 'secret_scan_hard_gate': 'PASS'}
+    for entry in result['checks']:
+        run_id = entry['run_id']
+        source = BASE / 'data/runs' / run_id
+        destination = migrated / entry['purpose'] / 'runs' / run_id
+        destination.parent.mkdir(parents=True)
+        shutil.copytree(source, destination)
+        # rebuild_v2 first calls the full validator; avoid validating it twice here.
+        verified = read_json(destination / 'manifest.json')
+        rebuilt = rebuild_v2(run_dir=destination, output_dir=BASE / ('rebuilt-' + run_id))
+        requests = read_json(destination / 'audit.json')['requests']
+        counts = {}
+        max_attempts = 0
+        for request in requests:
+            assert request['provider_kind'] == 'LIVE_SECURE_TUSHARE'
+            assert request['transport'] == 'HTTPS_NO_REDIRECT'
+            counts[request['api_name']] = counts.get(request['api_name'], 0) + 1
+            max_attempts = max(max_attempts, request['attempt_count'])
+        record = {'run_id': run_id, 'manifest_sha256': sha256_file(destination / 'manifest.json'),
+                  'purpose': verified['purpose'], 'as_of': verified['as_of'],
+                  'request_count': verified['request_count'], 'requests_by_api': counts,
+                  'max_attempt_count': max_attempts, 'migration_validation': 'PASS',
+                  'rebuild_status': rebuilt['status'], 'byte_identical_files': len(rebuilt['files'])}
+        evidence['runs'].append(record)
+        write_json(BASE / 'offline-result.json', evidence)
+        print(json.dumps(record, ensure_ascii=False), flush=True)
+    with SingleWriterLock(BASE / 'data'):
+        evidence['writer_lock_reacquired'] = True
+    assert not (BASE / 'data/transactions/publication.json').exists()
+    assert not list((BASE / 'data/jobs').glob('*.json'))
+    evidence['publication_transaction_absent'] = True
+    evidence['job_records_absent_direct_cli_engine'] = True
+    evidence['status'] = 'PASS'
+    write_json(BASE / 'offline-result.json', evidence)
+    print(json.dumps(evidence, ensure_ascii=False), flush=True)
+
+if __name__ == '__main__':
+    main()

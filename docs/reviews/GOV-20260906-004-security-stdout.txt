@@ -1,0 +1,15 @@
+正在校验便携包和冻结数据，请稍候...
+仅本机运行。请手动在浏览器打开 http://127.0.0.1:63748
+停止：在本终端按 Ctrl+C；迁移前请先等待更新完成，再停止服务。
+{"status": "SERVING", "url": "http://127.0.0.1:63748"}
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 POST request completed
+127.0.0.1 POST request completed
+127.0.0.1 GET request completed

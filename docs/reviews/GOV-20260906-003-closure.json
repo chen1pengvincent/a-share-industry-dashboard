@@ -1,0 +1,76 @@
+{
+  "chrome_new_real_update_tested": false,
+  "decision_id": "GOV-20260906-003",
+  "formal_files_unchanged": 1163,
+  "formal_published": false,
+  "historical_current_separation": "PASS",
+  "new_runs": [
+    {
+      "as_of": "20260904",
+      "byte_identical_files": 516,
+      "manifest_sha256": "cfb0e20fa13fa76ea8fbdc1ac611b246f0f48bebd87e1b80f92bb03f522dba6a",
+      "max_attempt_count": 1,
+      "migration_validation": "PASS",
+      "purpose": "UPDATE_LATEST",
+      "rebuild_status": "PASS",
+      "request_count": 142,
+      "requests_by_api": {
+        "daily_basic": 1,
+        "index_classify": 3,
+        "index_member_all": 132,
+        "sw_daily": 5,
+        "trade_cal": 1
+      },
+      "run_id": "SWIVD2-RUN-20260904-001"
+    },
+    {
+      "as_of": "20260901",
+      "byte_identical_files": 516,
+      "manifest_sha256": "cb629b5031784098fb121072684194262c295f15608c08a6437c319807b6a9fd",
+      "max_attempt_count": 1,
+      "migration_validation": "PASS",
+      "purpose": "MATERIALIZE_DATE",
+      "rebuild_status": "PASS",
+      "request_count": 140,
+      "requests_by_api": {
+        "daily_basic": 1,
+        "index_classify": 3,
+        "index_member_all": 132,
+        "sw_daily": 3,
+        "trade_cal": 1
+      },
+      "run_id": "SWIVD2-RUN-20260901-001"
+    }
+  ],
+  "old_evidence_unchanged": true,
+  "old_implementation_files_unchanged": 32,
+  "production_files_modified": [
+    "src/swivd/v2_pipeline.py"
+  ],
+  "protected_hashes_unchanged": 7,
+  "publication_transaction_absent": true,
+  "run004_artifacts_unchanged": 75,
+  "secret_scan": {
+    "checked_files": 3860,
+    "matches": 0
+  },
+  "source_doc_inventory": [
+    "docs/architecture.md",
+    "docs/data_dictionary.md",
+    "docs/runbook.md",
+    "docs/troubleshooting.md"
+  ],
+  "status": "APPROVED_SCOPE_PASS",
+  "temporary_success_ledger_records": 2,
+  "temporary_writer_lock_reacquired": true,
+  "test_files_added": [
+    "tests/test_v23_source_snapshot.py"
+  ],
+  "unittest": {
+    "collected": 245,
+    "failed": 0,
+    "passed": 245,
+    "skipped": 0
+  },
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED"
+}

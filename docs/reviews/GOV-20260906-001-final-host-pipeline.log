@@ -1,0 +1,13 @@
+test_sw2014_archive_catalog_and_industry_are_get_only (test_v2.PipelineV2Tests.test_sw2014_archive_catalog_and_industry_are_get_only) ... ok
+test_validator_binds_increment_lineage_raw_to_parent_manifest (test_v2.PipelineV2Tests.test_validator_binds_increment_lineage_raw_to_parent_manifest) ... ok
+test_fake_snapshot_validates_rebuilds_and_keeps_legacy_immutable (test_v2.PipelineV2Tests.test_fake_snapshot_validates_rebuilds_and_keeps_legacy_immutable) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 51.068s
+
+OK
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 POST request completed

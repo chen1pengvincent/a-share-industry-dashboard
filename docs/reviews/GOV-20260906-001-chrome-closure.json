@@ -1,0 +1,43 @@
+{
+  "decision_id": "GOV-20260906-001-FINAL_CLOSED",
+  "closed_at": "2026-09-06T10:27:22+08:00",
+  "status": "CHROME_READONLY_AND_CONTROLLED_WORKER_PASS",
+  "source_files_unchanged": 33,
+  "protected_state_hashes_unchanged": 7,
+  "old_evidence_unchanged": true,
+  "source_changes_this_turn": 0,
+  "real_provider_calls": 0,
+  "real_token_read": false,
+  "formal_runtime_state_changed": false,
+  "temporary_jobs_terminal": 2,
+  "temporary_run_count": 1,
+  "temporary_new_run_count": 0,
+  "temporary_transaction_count": 0,
+  "temporary_ledger_created": false,
+  "temporary_writer_lock_reacquired": true,
+  "service_stopped": true,
+  "port_18765_listening": false,
+  "chrome_tab_closed": true,
+  "live_validation_state": "NOT_RUN_FOR_V4_3",
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED",
+  "research_grade": "RESEARCH_ONLY",
+  "decision_eligible": false,
+  "production_approved": false,
+  "artifact_hashes": {
+    "docs/reviews/GOV-20260906-001-CHROME.md": "ecd2a2e777e9404d0a031815eea729cac6c6d45066ef15beaa441c93e93888ca",
+    "docs/reviews/GOV-20260906-001-chrome-observations.json": "34c21ed9a588205eb2b1543c1f9260edb92c83312e43f1e2fa0bdc53264ef0c3",
+    "docs/reviews/GOV-20260906-001-chrome-harness.txt": "5df98d7c15b4f352529f3301929006a57da23697a8db0056b8678f4ac98285f4"
+  },
+  "governance_hashes": {
+    "project_registry.json": {
+      "before": "d8a8dc9025cbf344410804bb6e455270e89f2093ab9dd0bc606e05b962c95153",
+      "after": "065dfe2f56ff5766c8a3e65a1f2d164355b9ddf2f9f4dc0900f28ef0916e7422"
+    },
+    "governance_decisions.md": {
+      "before": "746f116b67cf4c242bb2ac8beee9470a6118972948dc6867f92849ee38951a30",
+      "after": "2cda4f85add2af7308a7c52440af35154cfe342748eade4b0ee0955ea7d1ccec"
+    }
+  },
+  "report_links_valid": true,
+  "independent_scope_review": "PASS"
+}

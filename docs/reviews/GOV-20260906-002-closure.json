@@ -1,0 +1,29 @@
+{
+  "decision_id": "GOV-20260906-002",
+  "evidence_hashes": {
+    "docs/reviews/GOV-20260906-002-live-result.json": "2513f5b8f210577c14ca69638b7b5ce4b6ce13acc1de63244716a4593dbd052b",
+    "docs/reviews/GOV-20260906-002-probe-evidence.json": "3dad19af821dc85211cf80a24000c9370dda714134704e366a2520a885b68f9c",
+    "docs/reviews/GOV-20260906-002-probes/801191_SI.json": "9d31faf60fc2ae599c84b29db651a5f6b655665065c3b10940c7b704072f1976",
+    "docs/reviews/GOV-20260906-002-probes/801193_SI.json": "ac39aaefa6f8ced1f24b0447feb596c043a471850f11fbfcce58162460e44dcd",
+    "docs/reviews/GOV-20260906-002-probes/801194_SI.json": "d7958f760d75b4410779ec2d0f58001fb06c88d11a1a9fea8f552cccb085208b",
+    "docs/reviews/GOV-20260906-002-probes/801790_SI.json": "ac5898883d9f3e56489cf1e66f53172925f50e8bbd9b4266ea601dbbf183d8e5",
+    "docs/reviews/GOV-20260906-002-validation-diagnosis.json": "b86432cbb0102364c9576372b771e841ecbd7f703eaa46e0bf95815e8bca646c",
+    "docs/reviews/GOV-20260906-002.md": "5fddcfb00785efb0b13ca89bc3db845ce6373c77c95ce6fa7ed8de1138c4d2d5"
+  },
+  "execution_status": "UPDATE_VALIDATION_BLOCKED",
+  "formal_inventory_files_unchanged": 1163,
+  "full_offline_rebuild_executed": false,
+  "historical_run_executed": false,
+  "other_registry_projects_unchanged": true,
+  "protected_state_hashes_unchanged": 7,
+  "publication_transaction_absent": true,
+  "real_browser_update_executed": false,
+  "secret_scan": {
+    "checked_files": 2435,
+    "matches": 0
+  },
+  "source_hashes_unchanged": 33,
+  "temporary_failed_ledger_records": 1,
+  "temporary_pointer_unchanged": true,
+  "temporary_writer_lock_reacquired": true
+}

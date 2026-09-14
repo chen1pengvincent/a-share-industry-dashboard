@@ -1,0 +1,157 @@
+{
+  "kind": "READ_ONLY_HISTORICAL_PROJECTION_NOT_A_NEW_REGISTRATION",
+  "as_of": "2026-09-14",
+  "source_sha256": "b38e1439666eb93d7dcf974ce8b959e820aa20c5bebc97e548ea328f62ee2541",
+  "project": {
+    "project_id": "sw-industry-valuation-dashboard",
+    "name": "申万行业估值全景仪表盘",
+    "canonical_root": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+    "authority_scope": [
+      "基于 Tushare 申万行业指数原始 PE/PB 与收盘价的 SW2021 L1/L2/L3 研究型估值仪表盘",
+      "SW2021 当前轴与 SW2014 历史档案轴分别计算且禁止跨版本拼接",
+      "基于 index_member_all 生命周期与 daily_basic 交易日快照的成分股点时研究视图",
+      "手动本地浏览器更新、冻结输入、不可变快照、可审计懒加载页面与表格产物",
+      "UPDATE_LATEST 按 Asia/Shanghai 18:30 截止规则预选目标交易日并显示固定原因；目标确定后禁止因缺数继续回退",
+      "以 SW2021:L3:230501 为稳定业务身份，分别保存并验证特钢三级的目录、官方行情与成员端点代码"
+    ],
+    "role": "STANDALONE_RESEARCH_UTILITY",
+    "lifecycle_status": "ACTIVE_RESEARCH_ONLY_V4_3_SOURCE_PACKAGING_FIXED_ISOLATED_LIVE_ACCEPTANCE_PASS",
+    "paths": [
+      {
+        "path": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+        "match": "subtree",
+        "relation": "canonical"
+      }
+    ],
+    "allowed_actions": [
+      "OBSERVE",
+      "ISOLATED_VALIDATE through registered offline entrypoints",
+      "Serve already verified immutable snapshots through the loopback-only local UI without creating a data job",
+      "Read-only validation and offline rebuild of the immutable SWIVD2-RUN-20260901-002 snapshot closed by GOV-20260901-004"
+    ],
+    "approval_required_actions": [
+      "Any taxonomy beyond SW2021 L1/L2/L3 plus the preserved SW2014 L1 archive",
+      "Any change to industry or constituent percentile formulas, membership boundary states, minimum peer count, return anchors, labels, time window or approved data sources",
+      "Any silent identity correction, cross-version mapping, individual-stock historical percentile, backtest, score, signal or investment conclusion",
+      "Any scheduler, notification, external integration, external publication, commit, push, release or deployment",
+      "Any write outside the declared project and runtime data roots without a new exact governance decision",
+      "Any identity correction beyond the exact SW2021:L3:230501 candidate set and evidence gates authorized by GOV-20260901-004",
+      "Any additional real UPDATE_LATEST or any MATERIALIZE_DATE beyond the single closing validation run authorized by GOV-20260901-004"
+    ],
+    "forbidden_actions": [
+      "Using stock-level valuation aggregation as a silent fallback for missing industry-index valuation",
+      "Joining SW2014 and SW2021 into one percentile or ranking series",
+      "Loading or producing Pickle files, using CDN assets, persisting tokens or sending credentials over plaintext HTTP",
+      "Writing to or importing into Claude Stock, industry_flow_monitor or industry_moneyflow_report",
+      "Updating any baseline, authority, factor registry, screener, latest strategy pointer, v3, portfolio, forward, automation or production state",
+      "Calling any output decision-eligible, trade-ready or production-approved"
+    ],
+    "write_roots": [
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+      "/Users/chenyipeng/Library/Application Support/swivd"
+    ],
+    "validation_status": "V4_3_OFFLINE_SUITE_LIVE_UPDATE_HISTORY_OFFLINE_REBUILD_MIGRATION_PASS_NO_FORMAL_PUBLICATION_WINDOWS_E2E_UNVERIFIED",
+    "formal_pipeline_role": "INDEPENDENT_RESEARCH_ONLY_NO_INTEGRATION",
+    "production_allowed": false,
+    "state_sources": [
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/PROJECT_CONTRACT_V2.md",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/PROJECT_SPEC_V4.json",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/PROJECT_CONTRACT.md",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/PROJECT_SPEC.json",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/output/run_ledger.ndjson",
+      "/Users/chenyipeng/Library/Application Support/swivd/run_ledger.ndjson",
+      "/Users/chenyipeng/Library/Application Support/swivd/runs/SWIVD2-RUN-20260831-001/failure.json",
+      "/Users/chenyipeng/Library/Application Support/swivd/runs/SWIVD2-RUN-20260831-002/failure.json",
+      "/Users/chenyipeng/Library/Application Support/swivd/runs/SWIVD2-RUN-20260831-003/failure.json",
+      "/Users/chenyipeng/Library/Application Support/swivd/runs/SWIVD2-RUN-20260901-001/failure.json",
+      "/Users/chenyipeng/Library/Application Support/swivd/latest_run.json",
+      "/Users/chenyipeng/Library/Application Support/swivd/runs/SWIVD2-RUN-20260901-002/manifest.json",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260901-004-AUTHORIZED",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260901-004-FINAL_CLOSED",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-AUTHORIZED",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-LOCAL_VALIDATED_ACCEPTANCE_PENDING",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001.md",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001-CHROME.md",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-FINAL_CLOSED",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-002.md",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-002-FAILED_CLOSED",
+      "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-003.md",
+      "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-003-FINAL_CLOSED"
+    ],
+    "validation": [
+      {
+        "validation_id": "sw-industry-valuation-dashboard-offline-tests",
+        "enabled": true,
+        "cwd": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+        "argv": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tests",
+          "-p",
+          "test_*.py",
+          "-v"
+        ],
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONPYCACHEPREFIX": "/tmp/swivd-validation-pycache"
+        },
+        "side_effect_class": "TEMP_ONLY_NO_NETWORK"
+      },
+      {
+        "validation_id": "sw-industry-valuation-dashboard-spec",
+        "enabled": true,
+        "cwd": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+        "argv": [
+          "python3",
+          "run_dashboard.py",
+          "validate-spec",
+          "--spec",
+          "PROJECT_SPEC.json"
+        ],
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONPYCACHEPREFIX": "/tmp/swivd-validation-pycache"
+        },
+        "side_effect_class": "READ_ONLY_PROJECT_STATE_NO_NETWORK"
+      },
+      {
+        "validation_id": "sw-industry-valuation-dashboard-v4-spec",
+        "enabled": true,
+        "cwd": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+        "argv": [
+          "python3",
+          "run_dashboard.py",
+          "validate-spec",
+          "--spec",
+          "PROJECT_SPEC_V4.json"
+        ],
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONPYCACHEPREFIX": "/tmp/swivd-validation-pycache"
+        },
+        "side_effect_class": "READ_ONLY_PROJECT_STATE_NO_NETWORK"
+      },
+      {
+        "validation_id": "sw-industry-valuation-dashboard-doctor",
+        "enabled": true,
+        "cwd": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+        "argv": [
+          "python3",
+          "run_dashboard.py",
+          "doctor",
+          "--data-dir",
+          "/tmp/swivd-doctor-validation"
+        ],
+        "environment": {
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONPYCACHEPREFIX": "/tmp/swivd-validation-pycache"
+        },
+        "side_effect_class": "TEMP_ONLY_NO_NETWORK_TOKEN_SOURCE_BOOLEAN_ONLY"
+      }
+    ],
+    "last_boundary_verified_at": "2026-09-06T10:21:20+08:00"
+  }
+}

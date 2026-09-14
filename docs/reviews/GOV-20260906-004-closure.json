@@ -1,0 +1,234 @@
+{
+  "decision_id": "GOV-20260906-004",
+  "checked_on": "2026-09-07",
+  "status": "LOCAL_DELIVERY_CLOSURE_PASS",
+  "original_project_files_unchanged": 324,
+  "formal_files_unchanged": 1163,
+  "global_rules_and_registry_unchanged": true,
+  "existing_source_modified": false,
+  "portable_source_files_added": 11,
+  "new_files": [
+    {
+      "path": "docs/reviews/GOV-20260906-004-before.json",
+      "sha256": "7fc0df0018498aa5e4d03330e080c80e998bc7830c2c0b763263e1e357f79cdd",
+      "bytes": 216924
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-delivery.json",
+      "sha256": "8bdd6d5929bba593226d1bb18d1731cd1dc8fbc7c776586af4c870f282876833",
+      "bytes": 3262
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-foreign-harness.txt",
+      "sha256": "07ed21eee0c8a5f2246b1589ee48e355d1382c5bf98c0bb84a950ddb4136707c",
+      "bytes": 5811
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-foreign.json",
+      "sha256": "275edf62243ca567b30fe070209a0a20f2d3e237a9f1e02529171c56c7e407e1",
+      "bytes": 2389
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-implementation.patch",
+      "sha256": "12c14a149ab84c21d10ca70c7bdbb0521c9ff2a42dafb33e60263676a0e797c7",
+      "bytes": 121474
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-live-harness.txt",
+      "sha256": "d993d86aa5960e75774d548a6fa0fcaba7c7f117f94fd9cfd69254402d957bd5",
+      "bytes": 3337
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-live-initial.json",
+      "sha256": "079614a383618a567699d4109388f6ae4b9a1afa12785bb283fba689278c964f",
+      "bytes": 79
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-live.json",
+      "sha256": "5957c7e55a4420666f24cedd07b18d92e4278928c83b767e92173f7e4eb42c66",
+      "bytes": 493
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-native.json",
+      "sha256": "8c94d2f90111e9adc18c908ade5f0847fa098d0868144f5cfaca241922feff57",
+      "bytes": 1977
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-security-harness.txt",
+      "sha256": "2698e1e1f1378e272189441c8718eef2310d3e9700ad00e58f3e12100f1a4732",
+      "bytes": 9386
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-security-stderr.txt",
+      "sha256": "8787c51d5fc98470f76d2c14e578a06969bf6d0fb22c2670d0f392fd5f496752",
+      "bytes": 12
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-security-stdout.txt",
+      "sha256": "3d00183a74b40050190258be7b357ae9222279c233b8fecf8412444d53c29621",
+      "bytes": 619
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-security.json",
+      "sha256": "90b8f38a2a079bb58394472c8dbfc74eb6c78333f1ba11dd8e85fa89c3231358",
+      "bytes": 2128
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004-tests.log",
+      "sha256": "3db15286c41b6893c19de26343ba685edc6abea6e87477f4dbeac5cec6e9a2c9",
+      "bytes": 7116
+    },
+    {
+      "path": "docs/reviews/GOV-20260906-004.md",
+      "sha256": "02191966640c99b3d08e658fdcd3cae9dc15e2e396642808798245276bf497ca",
+      "bytes": 8473
+    },
+    {
+      "path": "portable/README-PORTABLE.md",
+      "sha256": "4c986ecbae4f7294d278b755e291b0bd46a4c92b360ab93310e659156f2536f5",
+      "bytes": 8703
+    },
+    {
+      "path": "portable/Start-Mac.command",
+      "sha256": "6f46b41c81b7f4d138b5d13be0e52d8ab7c586e40ba0f18a8889c09749e5a5b3",
+      "bytes": 361
+    },
+    {
+      "path": "portable/Start-Windows.cmd",
+      "sha256": "dd9b40386fd2f0aa8685f935e77659ffe712c2cd765c38c8a1334e24a85a4424",
+      "bytes": 387
+    },
+    {
+      "path": "portable/THIRD-PARTY.md",
+      "sha256": "09ecbc96a63d367ef3855ccb6d36cfd1716f566a758cddfedee9492a85b4eb6f",
+      "bytes": 1953
+    },
+    {
+      "path": "portable/build.py",
+      "sha256": "8dc27544b7a51fcec51b3aeac961958cff14b0cc2147f3c89bc406c7898fc42e",
+      "bytes": 10888
+    },
+    {
+      "path": "portable/launcher.py",
+      "sha256": "643d384d8e6eb8b4cf7b8f7770cfa5a15bb041979975c0c035774057acbcbbf4",
+      "bytes": 15822
+    },
+    {
+      "path": "portable/prepare_runtime.py",
+      "sha256": "ec0dae296e96d53cbdf27524eef858e2efb11c38ba72cdbcd80502f2a22afe62",
+      "bytes": 26242
+    },
+    {
+      "path": "portable/runtime-sources.json",
+      "sha256": "9ba07b24d0286ae4e855620898b446aac7f1407b6d881c9efc927611bb2f6f67",
+      "bytes": 2591
+    },
+    {
+      "path": "portable/tests/test_launcher.py",
+      "sha256": "875e0962b9cc9b58b6254af63abbd56c43435cb44baef5f9ececb836c7ca0769",
+      "bytes": 19461
+    },
+    {
+      "path": "portable/tests/test_package.py",
+      "sha256": "ef68009024e4abaee9b27cc0b535582d7c6e34d4c2d0d1cd885ed68655e14b05",
+      "bytes": 15908
+    },
+    {
+      "path": "portable/verify_delivery.py",
+      "sha256": "511e680aab25f351e6c847c755bb48020aa3c9eeb058b02109015178aaa3ee7c",
+      "bytes": 16177
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/README-PORTABLE.md",
+      "sha256": "4c986ecbae4f7294d278b755e291b0bd46a4c92b360ab93310e659156f2536f5",
+      "bytes": 8703
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SHA256SUMS",
+      "sha256": "17013045b9459bf7a9209b04d81b0fdf400c727af808e62e93c0e2ba3866b656",
+      "bytes": 319
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-macos-arm64-build.json",
+      "sha256": "cbd577b950868036c532bae3a957d29d716eef93b66ccd34978a20a42a80d1d0",
+      "bytes": 345
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-macos-arm64.zip",
+      "sha256": "24f7c21c0450f25725ee0da824aaba8b93337e6cc18792acf1f7919c209efb17",
+      "bytes": 152699595
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-macos-arm64.zip.sha256",
+      "sha256": "d64d54ac7d298a60f0c4ca2e8054e09d8b73687edf7b8f1b31da5dae655a1f5a",
+      "bytes": 105
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-macos-x86_64-build.json",
+      "sha256": "0c13eb3b39824a42f200976b5176cd3cdb5f75a8bc434534f0ad6dc6e0472702",
+      "bytes": 347
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-macos-x86_64.zip",
+      "sha256": "b7f36c8b28a336baaab9c51d7ff19ec2d92d24c96638ce7f53a895d883b74559",
+      "bytes": 155221554
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-macos-x86_64.zip.sha256",
+      "sha256": "48dd6d252661ea659db354564c34f9dd90eec51041a70dadb903a5e635e37eb6",
+      "bytes": 106
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-windows-x86_64-build.json",
+      "sha256": "dbfe61a0aaab4ca340d4931192f602f8c0b0a969bfaa8bceed2016b73a88f908",
+      "bytes": 351
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-windows-x86_64.zip",
+      "sha256": "41979cce706a69d5214047a166dbc48b11a1243d63cb73f6db804f79fc93f95e",
+      "bytes": 115464083
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/SWIVD-2.3.0-portable.1-windows-x86_64.zip.sha256",
+      "sha256": "a9d632c2fe481cc80fa2bffeee321f02bb0cd971591c110ea9f751a299a6e54e",
+      "bytes": 108
+    },
+    {
+      "path": "portable-dist/2.3.0-portable.1/THIRD-PARTY.md",
+      "sha256": "09ecbc96a63d367ef3855ccb6d36cfd1716f566a758cddfedee9492a85b4eb6f",
+      "bytes": 1953
+    }
+  ],
+  "archives": [
+    {
+      "archive": "SWIVD-2.3.0-portable.1-macos-arm64.zip",
+      "sha256": "24f7c21c0450f25725ee0da824aaba8b93337e6cc18792acf1f7919c209efb17",
+      "manifest_sha256": "c7687dba65fed1b6b2df8797b9994c1fcfc40d8841af235c3df6714a674e4d7c",
+      "source_files_verified": 49,
+      "dependencies_verified": 20,
+      "status": "PASS"
+    },
+    {
+      "archive": "SWIVD-2.3.0-portable.1-macos-x86_64.zip",
+      "sha256": "b7f36c8b28a336baaab9c51d7ff19ec2d92d24c96638ce7f53a895d883b74559",
+      "manifest_sha256": "0cccc2fcdee3da536ae8398264c5dad1b6881dbb446172aa3d811d9f08ea0a5d",
+      "source_files_verified": 49,
+      "dependencies_verified": 20,
+      "status": "PASS"
+    },
+    {
+      "archive": "SWIVD-2.3.0-portable.1-windows-x86_64.zip",
+      "sha256": "41979cce706a69d5214047a166dbc48b11a1243d63cb73f6db804f79fc93f95e",
+      "manifest_sha256": "0a0e1deda7e4979d046b0bbc9c7c0b3c8fed83972201942122eb5ba1c02742af",
+      "source_files_verified": 49,
+      "dependencies_verified": 20,
+      "status": "PASS"
+    }
+  ],
+  "evidence_hashes_verified": 12,
+  "report_sha256": "02191966640c99b3d08e658fdcd3cae9dc15e2e396642808798245276bf497ca",
+  "source_diff_sha256": "12c14a149ab84c21d10ca70c7bdbb0521c9ff2a42dafb33e60263676a0e797c7",
+  "windows_e2e": "WINDOWS_E2E_UNVERIFIED",
+  "intel_macos_e2e": "INTEL_MACOS_E2E_UNVERIFIED",
+  "production_approved": false
+}

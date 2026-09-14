@@ -1,0 +1,152 @@
+--- a/Stock/docs/project_registry.json
++++ b/Stock/docs/project_registry.json
+@@ -1,11 +1,11 @@
+ {
+   "schema_version": "stock-project-registry-v1",
+   "policy_version": "stock-governance-v1.0.0",
+-  "decision_id": "GOV-20260901-004",
++  "decision_id": "GOV-20260906-001",
+   "governance_root": "/Users/chenyipeng/Desktop/Codex/Stock",
+   "authority": "/Users/chenyipeng/Desktop/Codex/Stock/AGENTS.md",
+   "registry_scope": "Structural boundaries, canonical roots, action ceilings, write roots and validation entrypoints. This registry does not grant production permission or replace project-local manifests, receipts, ledgers, pointers or live configuration.",
+-  "as_of": "2026-09-01T21:40:31+08:00",
++  "as_of": "2026-09-06T01:31:39+08:00",
+   "path_resolution": {
+     "strategy": "longest_registered_path_prefix_wins",
+     "archive_ancestor_overrides_nested_metadata": true,
+@@ -526,7 +526,7 @@
+         "以 SW2021:L3:230501 为稳定业务身份，分别保存并验证特钢三级的目录、官方行情与成员端点代码"
+       ],
+       "role": "STANDALONE_RESEARCH_UTILITY",
+-      "lifecycle_status": "ACTIVE_RESEARCH_ONLY_SCHEME_A_CLOSED_LIVE_SNAPSHOT_VALIDATED_WINDOWS_E2E_UNVERIFIED",
++      "lifecycle_status": "ACTIVE_RESEARCH_ONLY_V4_3_BATCH1_IMPLEMENTED_CHROME_ACCEPTANCE_PENDING_WINDOWS_E2E_UNVERIFIED",
+       "paths": [
+         {
+           "path": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+@@ -561,7 +561,7 @@
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+         "/Users/chenyipeng/Library/Application Support/swivd"
+       ],
+-      "validation_status": "SCHEME_A_IMPLEMENTED_LIVE_V4_2_PASS_OFFLINE_REBUILD_PASS_CHROME_E2E_PASS_WINDOWS_E2E_UNVERIFIED",
++      "validation_status": "V4_3_OFFLINE_AND_HOST_SUPPLEMENT_PASS_LOCKED_INSTALL_PASS_CHROME_BLOCKED_MAC_LOCKED_NO_NEW_LIVE_RUN_WINDOWS_E2E_UNVERIFIED",
+       "formal_pipeline_role": "INDEPENDENT_RESEARCH_ONLY_NO_INTEGRATION",
+       "production_allowed": false,
+       "state_sources": [
+@@ -578,7 +578,10 @@
+         "/Users/chenyipeng/Library/Application Support/swivd/latest_run.json",
+         "/Users/chenyipeng/Library/Application Support/swivd/runs/SWIVD2-RUN-20260901-002/manifest.json",
+         "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260901-004-AUTHORIZED",
+-        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260901-004-FINAL_CLOSED"
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260901-004-FINAL_CLOSED",
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-AUTHORIZED",
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-LOCAL_VALIDATED_ACCEPTANCE_PENDING",
++        "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001.md"
+       ],
+       "validation": [
+         {
+@@ -654,7 +657,7 @@
+           "side_effect_class": "TEMP_ONLY_NO_NETWORK_TOKEN_SOURCE_BOOLEAN_ONLY"
+         }
+       ],
+-      "last_boundary_verified_at": "2026-09-01T21:40:31+08:00"
++      "last_boundary_verified_at": "2026-09-06T01:31:39+08:00"
+     },
+     {
+       "project_id": "jinzhu-v8-research",
+--- a/Stock/docs/governance_decisions.md
++++ b/Stock/docs/governance_decisions.md
+@@ -2630,3 +2630,94 @@
+ 不得删除本记录、真实 run、旧失败 run 或追加式 ledger。撤销当前 v2 latest、再次真实日更、
+ 扩展其他身份别名或变更任何受保护语义，均必须建立新的准确 successor；本授权至此耗尽，
+ 不得复用。
++
++## GOV-20260906-001-AUTHORIZED｜SWIVD 第一批正确性与可维护性修复
++
++- 记录时间：`2026-09-06T00:18:21+08:00`
++- 父决策：`GOV-20260901-004-FINAL_CLOSED`
++- 用户批准原文：`接受建议，按照你推荐的方式进行分批施工：1. 创建多个 Agent 和线程，加快施工节奏。2. 完成施工后开启对抗式审查，确保不要出错。`
++- 批准上下文：本任务上一轮列出的第一批确定缺陷、单位/覆盖率、异常恢复、依赖与针对性测试；第二批证券上市生命周期、新数据来源、成员分母调整仍待单独确认。
++- 状态：`ACTIVE_LOCAL_CHANGE_AND_ISOLATED_VALIDATE`；研究权限不变。
++
++### 目标、事实、最小范围与分工
++
++canonical 为非 Git 目录，没有 HEAD；修改前源文件、测试、页面、文档、登记和状态备份位于
++`/private/tmp/swivd-v23-preflight.g016zG`。上一轮只读审查及临时反例确认：daily_basic 全空
++仍成功、JSON 转义可绕过凭据明文扫描、父血缘递归增长、缺失图表连线、单位及覆盖率遗漏、
++改名妨碍成员合并、当前身份混用于历史日期、轮询失败不恢复、只读启动受写锁阻断、并发首载
++重复完整验证、依赖及启动脚本不完整。修复遵循原官方估值来源、百分位公式和边界未知规则。
++
++允许修改本项目 `src/swivd/v2_domain.py`、`v2_identity.py`、`tushare_client.py`、
++`v2_pipeline.py`、`v2_validator.py`、`validator.py`、`v2_storage.py`、`v2_jobs.py`、
++`v2_server.py`，按调用链新增凭据/血缘/环境等必要小模块；允许修改 `web/`、
++`run_dashboard.py` 的诊断集成、启动脚本、依赖文件及必要新增锁文件、相关 tests/docs/README。
++允许当前合同和规格建立 `v2.3.0/v4.3` successor、新 manifest-v4 声明扁平血缘布局；
++旧规格和旧 manifest 必须仍可离线验证，旧产物不改写。允许本日志追加开始/关闭记录、
++项目登记仅更新本项目及顶层决策时间，并在项目 docs 保存本次准确 diff/验证/回滚证据。
++
++并行任务独占文件：数据域 Agent 负责 domain/identity；运行 Agent 负责 jobs/server；
++页面 Agent 负责 web；独立任务负责客户端凭据检查、迁移依赖/doctor/安装文档；主任务负责
++pipeline/validator/storage/血缘、合同规格、治理、集成与最终验收。所有修复先读调用链，
++不覆盖其他任务或用户改动。任何新增数据源、分母、通用别名、投资结论均不在本批。
++
++### 验证与不变量
++
++验证仅用显式假 provider 和系统临时目录；新反例先证明回归修复，再跑已登记全套离线测试、
++规格校验、旧 RUN-004 与真实 v4.2 快照只读验证/断网重建、连续增量和长路径、凭据金丝雀、
++HTTP 及前端行为测试，并由不同实现者独立对抗复核。可用临时隔离数据进行本机 Chrome
++交互验收，但不得自动触发真实 API、正式更新或改变现有浏览器任务。真实 Windows 未验证
++必须仍标 `WINDOWS_E2E_UNVERIFIED`。不以无网络测试冒称真实接口验收。
++
++禁止本批运行真实 UPDATE_LATEST/MATERIALIZE_DATE、修改原始快照、latest、运行 ledger、
++RUN-004、其他 Stock 项目、authority/baseline/factor/strategy/v3/portfolio/自动化状态，
++禁止读出真实 token、新增 token 来源、定时更新、部署、commit/push/Release。
++
++基线 SHA-256：合同 `3ca7ca326ca1e9520462eb2eaec3683c50a5b066a4fd0934aecad14100425904`；
++规格 `4ca68fbc0eeabdf8ae8afe1092d7cfaaabd01977003c0aca37e1daa00763d541`；
++登记 `2aa959906b3d6d5f28141cd5270a75518ab6859100ce8178801000d5c485c03e`；
++追加前日志 `0660f9848315ab551d46687c510f1c0f35928226201f2c78663ac5b1eb87ef1b`；
++v2 latest `bc4d537ea2688a5bd6643e0ab98a0b3194ce33ee0ed1d78ad43bb8c39332bfa7`；
++v2 ledger `3faf662c5e754570624b05bd2ef851b7898e67b48284aab022e9d2e77292e0d7`；
++真实 manifest `6f8422dedaf820866e38b9d009a7f8c28a3945c527535dee46001509bcd49514`。
++
++回滚仅按修改清单逐文件从本批备份恢复并验证，新增文件逐项处理，不回滚追加式决策日志、
++不删除运行记录。失败保留诊断和旧 latest，关闭结论按实际验证层级陈述。
++
++## GOV-20260906-001-LOCAL_VALIDATED_ACCEPTANCE_PENDING｜第一批实现完成，浏览器验收待解锁
++
++- 记录时间：`2026-09-06T01:31:39+08:00`；父记录：`GOV-20260906-001-AUTHORIZED`。
++- `execution_status=LOCAL_IMPLEMENTATION_COMPLETED`；`artifact_publish_state=SOURCE_ONLY_NO_NEW_REAL_RUN`。
++- `offline_validation_state=PASS_WITH_HOST_SUPPLEMENT`；`live_validation_state=NOT_RUN_FOR_V4_3`。
++- `chrome_e2e_state=BLOCKED_MAC_LOCKED`；`windows_e2e_state=WINDOWS_E2E_UNVERIFIED`。
++- `research_grade=RESEARCH_ONLY / decision_eligible=false / production_approved=false`。
++- 多 Agent 和两个独立用户任务已完成本批独占文件施工、交叉对抗审查和最后反例修复。
++
++当前合同/规格分别为 v2.3.0/v4.3，新快照格式 manifest-v4；准确变更为项目内 33 个实现、
++测试及维护文件（9 个新增），详见项目 `docs/reviews/GOV-20260906-001-changes.json` 与
++同前缀 `.patch`。全局登记仅更新本项目状态投影和顶层决策/时间；其他项目条目逐项比对不变。
++
++锁定依赖临时环境整套收集 239 项：236 通过，3 个沙箱 HTTP 跳过；最后门禁后宿主 15/15
++补测覆盖这三个跳过项；独立完整验证器的相等/倒挂/合法历史日期反例另 3/3 通过。最终源码
++不是以一次 242 项整套运行声明通过，证据分层列明。真实临时依赖安装、pip check、时区、
++移植专项通过；未修改全局/项目虚拟环境，未读取真实 token，也未访问 Tushare。
++
++旧 RUN-004、真实 RUN-002 只读验证及其派生重放通过；终检 75/1130 个文件哈希闭包仍通过。
++原 v1/v2 latest、运行 ledger、两份原 manifest 和 Stock 根 AGENTS.md 哈希与开始基准相同。
++无真实 UPDATE_LATEST/MATERIALIZE_DATE、正式数据发布、投资/生产晋级、其他项目、
++自动化、commit/push/Release 或外部消息写入。
++
++Chrome 两次受 Mac 锁屏阻挡，已要求手动解锁；临时只读服务已停止，端口无监听且无残留
++job/transaction。因此本记录不是 FINAL_CLOSED，也不沿用旧版本 Chrome PASS。后续只允许
++继续本批已批准的隔离 Chrome 验收和必要证据收尾；不扩展第二批数据来源/生命周期/成员分母，
++不默认创建真实更新。不得用本次离线通过替代真实接口或 Windows 主机验收。
++
++证据文件：`sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001.md`。
++合同 SHA-256：`8d605d695e7dc3f04f3f65ad2879aa6ae4752b0feae54e50042fcda151ddbc67`；
++规格 SHA-256：`3495ff8d9727bd2bdf1cb4f9fe14ccec2db1b9fb799f9871e15b6ed1efc2ff26`；
++变更清单 SHA-256：`f18c4265c744bd434459e7bcf4372afefd788250f380f224075eb81daf6d14a6`；
++统一 diff SHA-256：`ae75e79098577b1112ef88a2a9ed2cb6455ea27ca8cc3917ff5e690db94e9135`；
++验收报告 SHA-256：`f12c04769d3b9268c6fdf5d28b88a1a2056b24bed690b36ca12065ada47d7fa3`；
++登记更新后 SHA-256：`d8a8dc9025cbf344410804bb6e455270e89f2093ab9dd0bc606e05b962c95153`。
++
++回滚保持开始记录中的逐文件方法：先核对 after hash，再按备份或统一 diff 恢复 before hash；
++新增文件仅逐项处理。不得整体回滚其他用户改动、删除旧快照或回退追加式日志。

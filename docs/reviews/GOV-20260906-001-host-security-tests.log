@@ -1,0 +1,28 @@
+test_http_log_never_interpolates_request_target (test_v2.SecurityTests.test_http_log_never_interpolates_request_target) ... ok
+test_http_origin_nonce_content_type_host_and_cors (test_v2.SecurityTests.test_http_origin_nonce_content_type_host_and_cors) ... ok
+test_http_shell_and_all_assets_have_safe_headers_and_mime_types (test_v2.SecurityTests.test_http_shell_and_all_assets_have_safe_headers_and_mime_types) ... ok
+test_job_persists_target_reason_through_progress_and_reports_noop (test_v2.SecurityTests.test_job_persists_target_reason_through_progress_and_reports_noop) ... ok
+test_job_rejects_inconsistent_pipeline_success_metadata (test_v2.SecurityTests.test_job_rejects_inconsistent_pipeline_success_metadata) ... ok
+test_lock_is_nonblocking_and_pointer_hash_is_enforced (test_v2.SecurityTests.test_lock_is_nonblocking_and_pointer_hash_is_enforced) ... ok
+test_non_loopback_bind_is_rejected (test_v2.SecurityTests.test_non_loopback_bind_is_rejected) ... ok
+test_pointer_metadata_manifest_purpose_and_legacy_history_are_bound (test_v2.SecurityTests.test_pointer_metadata_manifest_purpose_and_legacy_history_are_bound) ... ok
+test_progress_is_monotonic_and_unfinished_job_recovers_interrupted (test_v2.SecurityTests.test_progress_is_monotonic_and_unfinished_job_recovers_interrupted) ... ok
+test_raw_replay_preserves_decimal_lexemes_without_binary_float (test_v2.SecurityTests.test_raw_replay_preserves_decimal_lexemes_without_binary_float) ... ok
+test_request_shape_and_empty_values_fail_closed (test_v2.SecurityTests.test_request_shape_and_empty_values_fail_closed) ... ok
+test_secure_client_rejects_credential_reflection_before_raw_can_be_saved (test_v2.SecurityTests.test_secure_client_rejects_credential_reflection_before_raw_can_be_saved) ... ok
+
+----------------------------------------------------------------------
+Ran 12 tests in 1.316s
+
+OK
+127.0.0.1 POST request completed
+127.0.0.1 POST request completed
+127.0.0.1 POST request completed
+127.0.0.1 POST request completed
+127.0.0.1 OTHER request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed
+127.0.0.1 GET request completed

@@ -1,0 +1,41 @@
+{
+  "attempts": {
+    "credential_lookup": 0,
+    "network": 0
+  },
+  "imported_modules": 19,
+  "runtime": {
+    "dependencies_locked": true,
+    "dependency_versions": {
+      "beautifulsoup4": "4.15.0",
+      "bs4": "0.0.2",
+      "certifi": "2026.6.17",
+      "charset-normalizer": "3.5.1",
+      "colorama": "0.4.6",
+      "idna": "3.19",
+      "lxml": "6.1.1",
+      "numpy": "2.4.6",
+      "pandas": "3.0.5",
+      "python-dateutil": "2.9.0.post0",
+      "requests": "2.34.2",
+      "simplejson": "4.1.1",
+      "six": "1.17.0",
+      "soupsieve": "2.9.2",
+      "tqdm": "4.70.0",
+      "tushare": "1.4.29",
+      "typing-extensions": "4.16.0",
+      "tzdata": "2026.3",
+      "urllib3": "2.7.0",
+      "websocket-client": "1.9.2"
+    },
+    "path_policy": "RELATIVE_RUN_PATHS",
+    "platform": "Darwin",
+    "python_implementation": "CPython",
+    "python_version": "3.14.6",
+    "timezone_available": true,
+    "windows_e2e": "UNVERIFIED"
+  },
+  "sdk_import_stderr_suppressed": false,
+  "sdk_import_stdout_suppressed": false,
+  "tzdata_fallback_available": true
+}

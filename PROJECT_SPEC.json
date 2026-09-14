@@ -1,0 +1,237 @@
+{
+  "schema_version": "swivd-project-spec-v3",
+  "contract_version": "swivd-contract-v1.2.0",
+  "project_id": "sw-industry-valuation-dashboard",
+  "decision_id": "GOV-20260830-001",
+  "semantic_successor_id": "GOV-20260830-001-SW2014-SEMANTICS-AUTHORIZED",
+  "name_history_successor_id": "GOV-20260830-001-NAME-HISTORY-AUTHORIZED",
+  "canonical_root": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+  "status_defaults": {
+    "research_grade": "RESEARCH_ONLY",
+    "decision_eligible": false,
+    "production_approved": false
+  },
+  "network": {
+    "base_url": "https://api.tushare.pro",
+    "allow_redirects": false,
+    "allowed_apis": [
+      "trade_cal",
+      "index_classify",
+      "sw_daily"
+    ],
+    "timeout_seconds": 30,
+    "max_transient_retries": 2,
+    "backoff_seconds": [
+      1,
+      3
+    ]
+  },
+  "endpoints": {
+    "trade_cal": {
+      "params": [
+        "exchange",
+        "start_date",
+        "end_date",
+        "is_open"
+      ],
+      "fields": [
+        "exchange",
+        "cal_date",
+        "is_open",
+        "pretrade_date"
+      ],
+      "primary_key": [
+        "exchange",
+        "cal_date"
+      ],
+      "row_limit": 6000
+    },
+    "index_classify": {
+      "params": [
+        "level",
+        "src"
+      ],
+      "fields": [
+        "index_code",
+        "industry_name",
+        "parent_code",
+        "level",
+        "industry_code",
+        "is_pub",
+        "src"
+      ],
+      "primary_key": [
+        "src",
+        "index_code"
+      ],
+      "row_limit": 5000
+    },
+    "sw_daily": {
+      "params": [
+        "ts_code",
+        "start_date",
+        "end_date"
+      ],
+      "fields": [
+        "ts_code",
+        "trade_date",
+        "name",
+        "open",
+        "low",
+        "high",
+        "close",
+        "change",
+        "pct_change",
+        "vol",
+        "amount",
+        "pe",
+        "pb",
+        "total_mv",
+        "float_mv"
+      ],
+      "primary_key": [
+        "ts_code",
+        "trade_date"
+      ],
+      "row_limit": 4000
+    }
+  },
+  "axes": {
+    "SW2021": {
+      "level": "L1",
+      "expected_classification_count": 31,
+      "query_start": "20211213",
+      "query_end": "AS_OF",
+      "role": "CURRENT",
+      "publication_flag_rule": "REQUIRED_BINARY",
+      "publication_state": "BINARY_FLAG_PROVIDED",
+      "selection_basis": "PUBLISHED_ONLY",
+      "continuity_policy": "COMMON_START_RECTANGLE",
+      "identity_key": "ts_code",
+      "name_history_policy": "CONSTANT_NAME_REQUIRED",
+      "minimum_valid_observations": 252
+    },
+    "SW2014": {
+      "level": "L1",
+      "expected_classification_count": 28,
+      "query_start": "20140101",
+      "query_end": "LAST_OPEN_BEFORE_20211213",
+      "role": "HISTORICAL_ARCHIVE",
+      "publication_flag_rule": "REQUIRED_NULL_FOR_RETIRED_TAXONOMY",
+      "publication_state": "NOT_PROVIDED_FOR_RETIRED_TAXONOMY",
+      "selection_basis": "ALL_CLASSIFIED_L1_ROWS_FOR_RETIRED_TAXONOMY",
+      "continuity_policy": "PER_CODE_OBSERVED_INCEPTION_TO_COMMON_END",
+      "allow_late_first_observation": true,
+      "require_common_end_date": true,
+      "require_no_internal_open_date_gaps": true,
+      "identity_key": "ts_code",
+      "source_name_field": "name",
+      "name_history_policy": "STABLE_TS_CODE_WITH_SOURCE_NAME_HISTORY",
+      "require_end_name_match_classification": true,
+      "preserve_source_name": true,
+      "minimum_valid_observations": 252
+    }
+  },
+  "normalized_classification": {
+    "source_fields": [
+      "index_code",
+      "industry_name",
+      "parent_code",
+      "level",
+      "industry_code",
+      "is_pub",
+      "src"
+    ],
+    "derived_fields": [
+      "publication_state",
+      "selection_basis"
+    ],
+    "preserve_source_nulls": true
+  },
+  "normalized_history": {
+    "identity_field": "index_code",
+    "display_name_field": "industry_name",
+    "source_name_scope": "SW2014_ONLY",
+    "source_name_field": "source_name",
+    "source_name_origin": "sw_daily.name",
+    "preserve_source_name": true,
+    "sw2014_name_history_schema": {
+      "code_count": "integer",
+      "renamed_code_count": "integer",
+      "renamed_codes": "sorted_unique_index_code_array",
+      "segment_count": "integer",
+      "segments": [
+        "index_code",
+        "source_name",
+        "first_date",
+        "last_date",
+        "row_count"
+      ]
+    }
+  },
+  "valuation": {
+    "source_fields": [
+      "pe",
+      "pb"
+    ],
+    "valid_rule": "finite_and_strictly_positive",
+    "percentile_method": "EMPIRICAL_CDF_LE",
+    "formula": "count(x <= current) / valid_count * 100",
+    "include_current": true,
+    "missing_fill": "NONE",
+    "labels": [
+      {
+        "lower_inclusive": 0,
+        "upper_exclusive": 20,
+        "label": "历史极低位"
+      },
+      {
+        "lower_inclusive": 20,
+        "upper_exclusive": 40,
+        "label": "历史较低位"
+      },
+      {
+        "lower_inclusive": 40,
+        "upper_exclusive": 60,
+        "label": "历史中位"
+      },
+      {
+        "lower_inclusive": 60,
+        "upper_exclusive": 80,
+        "label": "历史较高位"
+      },
+      {
+        "lower_inclusive": 80,
+        "upper_inclusive": 100,
+        "label": "历史极高位"
+      }
+    ]
+  },
+  "returns": {
+    "price_field": "close",
+    "windows": {
+      "return_5d": "close_t / close_t_minus_5_open_days - 1",
+      "return_mtd": "close_t / close_last_open_day_previous_month - 1",
+      "return_ytd": "close_t / close_last_open_day_previous_year - 1"
+    },
+    "missing_anchor": "HISTORY_INSUFFICIENT",
+    "compound_pct_change": false
+  },
+  "output": {
+    "root": "output",
+    "run_pattern": "SWIVD-RUN-YYYYMMDD-NNN",
+    "immutable_runs": true,
+    "latest_pointer": "output/latest_run.json",
+    "append_only_ledger": "output/run_ledger.ndjson",
+    "allow_pickle": false,
+    "allow_remote_assets": false,
+    "auto_open_browser": false,
+    "required_artifacts": [
+      "dashboard.html",
+      "audit.json",
+      "manifest.json",
+      "SHA256SUMS",
+      "reports/adversarial_review.md"
+    ]
+  }
+}

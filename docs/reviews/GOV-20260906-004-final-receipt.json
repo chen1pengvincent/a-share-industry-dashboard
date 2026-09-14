@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "governance_append_only": true,
+  "full_platform_closure_claimed": false,
+  "governance_after_sha256": "838c2278c1922c87ab354ed11714afd98c3d47ab296c2c06b20c68ec8b401c43",
+  "governance_patch_sha256": "f62ff447513a77e7d582d1d38f7a40b4ad210a3ca69af0751e0df06c5d5373be",
+  "report_sha256": "02191966640c99b3d08e658fdcd3cae9dc15e2e396642808798245276bf497ca",
+  "closure_sha256": "ff9ef209572cfbf9cb70a71a84afda9e5a62f976225708323f6f9b747296c8b6"
+}

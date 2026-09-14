@@ -1,0 +1,33 @@
+--- a/docs/governance_decisions.md
++++ b/docs/governance_decisions.md
+@@ -2853,3 +2853,30 @@
+ 
+ 本次修复与隔离重验授权至此关闭，不转为正式数据发布或后续源码/合同变化授权。
+ 回滚使用报告中的逐文件diff、after哈希及临时before备份；登记逐字段恢复，历史日志仅追加撤销。
++
++## GOV-20260906-004-AUTHORIZED｜分平台便携包构建与隔离验收
++
++- 日期：2026-09-06，Asia/Shanghai。批准原文：用户要求“帮我把这个项目打包，确保移到别的 Mac 或 Windows 之后都可运行”，只需补充 Tushare token，并行 Agent 与对抗审查。
++- 准确对象：`sw_industry_valuation_dashboard/portable/` 新增外层启动器、构建脚本、测试、中文指南与供应链清单；`portable-dist/` 新增本地交付包；`docs/reviews/GOV-20260906-004*` 新增证据；本日志只追加。不存在 Git 提交树，不进行 commit/push/Release 或外部发布。
++- 已知事实与根因：现启动器依赖目标机已有 Python；日更依赖完整 RUN-004 档案；v4 seed 校验绑定原字节 source。最小方案为平台专用私有 Python 3.14.6、原锁定依赖、原字节 app、完整 RUN-004 及 9 月 4 日隔离验收 seed 的外层组合。不修改已有领域代码、公式、schema、合同、规格、manifest 或正式指针。
++- seed 固定为前轮系统临时目录的 `SWIVD2-RUN-20260904-001`，manifest SHA `cfb0e20fa13fa76ea8fbdc1ac611b246f0f48bebd87e1b80f92bb03f522dba6a`。分发与启动导入只复制不可变字节；新包的数据根显式独立，禁止与正式 Application Support 数据合并。该种子是隔离验收结果，不宣称已切换正式 current。
++- 允许从官方 Python/Astral/PyPI HTTPS 来源下载指定平台运行时及锁定 wheels，在系统临时目录解包、哈希核验、组装和执行必要验证；不安装系统 Python、全局依赖、虚拟机、插件，不改系统安全设置。默认覆盖 Mac arm64/x86_64、Windows x64；真实 Windows 主机缺失时保留 `WINDOWS_E2E_UNVERIFIED`。
++- 入口 `外层启动器 → 原字节 run_dashboard.main → serve/v2_jobs/v2_pipeline`；Token 来源仍 ENV→本机 SDK，缺失时终端无回显输入到本进程 ENV。只保存在内存，不进入文件、argv、浏览器、错误正文或系统持久配置；可不输入而只读浏览。
++- 失败场景：架构/系统不兼容、依赖/种子损坏、无回显终端不可用、中文空格路径、重复启动、端口冲突、导入中断、已有数据覆盖和供给链/凭据风险。必须失败关闭，不回退系统 Python、不修改旧 manifest、不覆盖已有 data。
++- 验证：包内运行时锁定依赖/时区/legacy 门，最终压缩包在新中文空格路径解压、离线 seed 哈希验证和重建、loopback HTTP、启动器凭据与路径对抗测试，Mac 真机验证和 Windows 静态验证分开记录。真实 token 如用于必要安全扫描或最小 HTTPS 诊断只在内存，不追加正式数据更新；不启动持续服务或自动打开浏览器。
++- before 证据：`/private/tmp/swivd-portable.Kgl6I0/boundary-before.json`；全局规则 SHA `3e19909c0b7134391571bc0ab56f5115bea65756fac4dac04773dd4b131da50a`，登记 SHA `83467d5b676aec1c15f9dd517756ba58fca943e8128b91ab270554c277be1f5b`，本日志追加前 SHA `3388ad1f1a8373cc3d646d11eee4a2fddffe92ca3a87d7a811b1e86117d044c5`。
++- 前后复核原项目文件、正式 runtime、RUN-004 和全局规则/登记；新增构建与测试只写本批准路径或系统临时目录。回滚核对哈希后仅移除本次新增便携文件/包，日志追加撤销；正式状态无需回滚且不得触碰。
++- 保持 `RESEARCH_ONLY / decision_eligible=false / production_approved=false`；不新增回测、投资结论、交易或生产权限。完整跨平台可用性只有实际目标主机验证后才能宣称。
++
++## GOV-20260906-004-LOCAL_DELIVERED_PENDING_PLATFORM_E2E｜便携包本地交付，保留异机验收缺口
++
++- 记录日期：2026-09-07，Asia/Shanghai；同范围用户继续指令承接本决策批准，不复用旧决策授权。
++- 已交付 `sw_industry_valuation_dashboard/portable-dist/2.3.0-portable.1/` 三份 ZIP，分别面向 Mac arm64、Mac x86_64、Windows x86_64。各包内置 Python 3.14.6、20 个锁定依赖、原字节 app、完整 RUN-004 与 20260904 隔离种子。
++- `execution_status=PACKAGED_MAC_ARM64_VALIDATED_WITH_FOREIGN_PLATFORM_GAPS`；`artifact_publish_state=LOCAL_RESEARCH_PORTABLE_ZIPS`；`live_validation_state=MAC_ARM64_AUTHENTICATED_HTTPS_CALENDAR_PROBE_PASS`；`decision_eligible=false / production_approved=false`。
++- 新增便携层 11 个源码/测试/指南文件；49 项便携层测试通过、0 失败/跳过。Mac 最终 ZIP 新路径原生验收通过：516 文件断网重建逐字节一致，目录 31/134/346、行业分片、实际启动器、首次原子导入、HTTP 安全、并发端口与正常停止通过。
++- 真 token 只读本机 SDK 并仅在内存完成单交易日 HTTPS 诊断，6778 个包内文件零命中；另一独立假 token 安全验收 8070 文件及 HTTP/日志/真实 PID argv 零命中。没有从便携包发起完整真实更新作业，没有修改正式数据或启动持续服务。
++- 两种 Mac 各 90 个 Mach-O、Windows 109 个 PE64 静态组成检查通过；三包 ZIP 和源/依赖/seed 哈希绑定复核通过。但 `WINDOWS_E2E_UNVERIFIED / INTEL_MACOS_E2E_UNVERIFIED`，本轮浏览器交互未验。不得将此记录解释为全平台最终验收关闭。
++- 收尾复核原项目 324 文件、正式 runtime 1163 文件字节不变，全局规则和项目登记不变，旧 latest/ledger/manifest 未改。新增文件与统一 diff 有记录；日志为追加式。回滚仅针对核对哈希后的本决策新增源码与版本目录，先保留用户后续便携 data，日志只追加撤销。
++- 报告：`sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-004.md`，SHA `02191966640c99b3d08e658fdcd3cae9dc15e2e396642808798245276bf497ca`。
++- 闭合检查：`GOV-20260906-004-closure.json`，SHA `ff9ef209572cfbf9cb70a71a84afda9e5a62f976225708323f6f9b747296c8b6`；源码 diff SHA `12c14a149ab84c21d10ca70c7bdbb0521c9ff2a42dafb33e60263676a0e797c7`；本记录追加前日志 SHA `fcbc1991906fb4bdf059b2de706fbdfe6a81b7507346c2ae381ba359d0427a3b`。
++- 本地打包和已执行的 Mac 范围到此交付。Windows/Intel 真机及相应浏览器/真实更新仍需目标主机证据后另追加验收记录；未追加 `GOV-20260906-004-FINAL_CLOSED`。不转为提交、外部发布、定时任务、交易或生产授权。

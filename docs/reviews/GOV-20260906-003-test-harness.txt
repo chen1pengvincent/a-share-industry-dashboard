@@ -1,0 +1,21 @@
+"""Registered unittest discovery; temporary logs; external networking denied."""
+import sys
+import unittest
+from pathlib import Path
+
+# Match `python -m unittest`: a script located in /tmp otherwise omits cwd.
+sys.path.insert(0, str(Path.cwd()))
+
+def local_only(event, args):
+    if event == 'socket.connect':
+        address = args[1]
+        if isinstance(address, tuple) and address[0] not in ('127.0.0.1', '::1', 'localhost'):
+            raise RuntimeError('TEST_EXTERNAL_NETWORK_DENIED')
+sys.addaudithook(local_only)
+with Path('/private/tmp/swivd-packaging-fix.YUp0LZ/offline-tests.log').open('w') as log:
+    suite = unittest.defaultTestLoader.discover('tests', pattern='test_*.py')
+    result = unittest.TextTestRunner(stream=log, verbosity=2).run(suite)
+print({'collected': result.testsRun, 'failures': len(result.failures),
+       'errors': len(result.errors), 'skipped': len(result.skipped),
+       'passed': result.testsRun-len(result.failures)-len(result.errors)-len(result.skipped)}, flush=True)
+sys.exit(not result.wasSuccessful())

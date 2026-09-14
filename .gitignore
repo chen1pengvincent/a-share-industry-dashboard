@@ -1,0 +1,23 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.DS_Store
+._*
+.env
+.env.*
+*.pem
+*.key
+.local/
+node_modules/
+*.egg-info/
+# Real market data, mutable state and binary build outputs are not source.
+/output/
+/data/
+/seed-data/
+/runtime/
+/packages/
+/portable-dist/
+/dist/
+/build/

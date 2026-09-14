@@ -1,0 +1,45 @@
+--- before/docs/project_registry.json
++++ after/docs/project_registry.json
+@@ -1,11 +1,11 @@
+ {
+   "schema_version": "stock-project-registry-v1",
+   "policy_version": "stock-governance-v1.0.0",
+-  "decision_id": "GOV-20260906-001",
++  "decision_id": "GOV-20260906-002",
+   "governance_root": "/Users/chenyipeng/Desktop/Codex/Stock",
+   "authority": "/Users/chenyipeng/Desktop/Codex/Stock/AGENTS.md",
+   "registry_scope": "Structural boundaries, canonical roots, action ceilings, write roots and validation entrypoints. This registry does not grant production permission or replace project-local manifests, receipts, ledgers, pointers or live configuration.",
+-  "as_of": "2026-09-06T10:21:20+08:00",
++  "as_of": "2026-09-06T10:53:48+08:00",
+   "path_resolution": {
+     "strategy": "longest_registered_path_prefix_wins",
+     "archive_ancestor_overrides_nested_metadata": true,
+@@ -526,7 +526,7 @@
+         "以 SW2021:L3:230501 为稳定业务身份，分别保存并验证特钢三级的目录、官方行情与成员端点代码"
+       ],
+       "role": "STANDALONE_RESEARCH_UTILITY",
+-      "lifecycle_status": "ACTIVE_RESEARCH_ONLY_V4_3_BATCH1_CLOSED_ISOLATED_CHROME_PASS_WINDOWS_E2E_UNVERIFIED",
++      "lifecycle_status": "ACTIVE_RESEARCH_ONLY_V4_3_REAL_FETCH_PASS_UPDATE_BLOCKED_SOURCE_REPORT_SECRET_SCAN",
+       "paths": [
+         {
+           "path": "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+@@ -561,7 +561,7 @@
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard",
+         "/Users/chenyipeng/Library/Application Support/swivd"
+       ],
+-      "validation_status": "V4_3_OFFLINE_HOST_AND_LOCKED_INSTALL_PASS_CHROME_READONLY_CONTROLLED_WORKER_PASS_NO_NEW_LIVE_RUN_WINDOWS_E2E_UNVERIFIED",
++      "validation_status": "V4_3_REAL_FETCH_PASS_UPDATE_VALIDATION_BLOCKED_HISTORICAL_AND_REBUILD_NOT_RUN_WINDOWS_E2E_UNVERIFIED",
+       "formal_pipeline_role": "INDEPENDENT_RESEARCH_ONLY_NO_INTEGRATION",
+       "production_allowed": false,
+       "state_sources": [
+@@ -583,7 +583,9 @@
+         "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-LOCAL_VALIDATED_ACCEPTANCE_PENDING",
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001.md",
+         "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-001-CHROME.md",
+-        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-FINAL_CLOSED"
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-001-FINAL_CLOSED",
++        "/Users/chenyipeng/Desktop/Codex/Stock/sw_industry_valuation_dashboard/docs/reviews/GOV-20260906-002.md",
++        "/Users/chenyipeng/Desktop/Codex/Stock/docs/governance_decisions.md#GOV-20260906-002-FAILED_CLOSED"
+       ],
+       "validation": [
+         {
