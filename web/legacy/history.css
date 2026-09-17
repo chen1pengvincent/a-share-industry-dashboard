@@ -1,0 +1,13 @@
+/* 历史图与 SVG 的局部样式单独保留，便于后续替换渲染器而不触碰全局主题。 */
+.axis-line { stroke: #30363d; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.grid-line { stroke: #21262d; stroke-width: 1; vector-effect: non-scaling-stroke; }
+.median-line { stroke: #d29922; stroke-width: 1.2; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; }
+.series-line { fill: none; stroke: #58a6ff; stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.series-area { fill: rgba(88, 166, 255, .10); }
+.series-point { fill: #f85149; stroke: #0d1117; stroke-width: 2; }
+.svg-label { fill: #8b949e; font-size: 11px; }
+.svg-title { fill: #c9d1d9; font-size: 12px; font-weight: 600; }
+.scatter-point { stroke: #0d1117; stroke-width: 1.5; opacity: .9; }
+.radar-grid { fill: none; stroke: #30363d; stroke-width: 1; }
+.radar-pe { fill: rgba(88, 166, 255, .14); stroke: #58a6ff; stroke-width: 2; }
+.radar-pb { fill: rgba(63, 185, 80, .11); stroke: #3fb950; stroke-width: 2; }

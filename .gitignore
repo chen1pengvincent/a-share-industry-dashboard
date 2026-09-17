@@ -21,3 +21,7 @@ node_modules/
 /portable-dist/
 /dist/
 /build/
+
+# Integration local runtime and implementation evidence
+.local/
+data/

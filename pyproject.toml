@@ -16,5 +16,8 @@ dependencies = [
 [tool.setuptools]
 package-dir = {"" = "src"}
 
+[project.scripts]
+industry-workbench = "industry_workbench.cli:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]

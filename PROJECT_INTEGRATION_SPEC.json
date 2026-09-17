@@ -1,0 +1,87 @@
+{
+  "schema_version": "industry-workbench-spec-v1",
+  "decision_id": "GOV-20260917-INDUSTRY-INTEGRATION-001",
+  "project_id": "a-share-industry-dashboard",
+  "taxonomies": {
+    "SW": {
+      "version": "SW2021",
+      "levels": [
+        "L1",
+        "L2",
+        "L3"
+      ],
+      "history_floor": "20211213"
+    },
+    "THS": {
+      "version": "THS",
+      "levels": [
+        "INDUSTRY"
+      ],
+      "membership_evidence": "OBSERVED_SAME_DAY"
+    },
+    "TDX": {
+      "version": "TDX",
+      "levels": [
+        "880",
+        "881"
+      ]
+    },
+    "CI": {
+      "version": "CI",
+      "levels": [
+        "L1",
+        "L2",
+        "L3"
+      ]
+    }
+  },
+  "valuation": {
+    "market": "SH_SZ_A",
+    "metrics": [
+      "pe_ttm_median",
+      "pb_median"
+    ],
+    "valid": "positive_finite",
+    "minimum_count": 1,
+    "small_sample_below": 5,
+    "percentile_minimum_days": 252,
+    "percentile_method": "ECDF_LE",
+    "official_separate": true
+  },
+  "moneyflow": {
+    "endpoint": "moneyflow",
+    "field": "net_mf_amount",
+    "unit": "0.01_WAN_CNY_INTEGER",
+    "market": "SH_SZ_A",
+    "missing_as_zero": false
+  },
+  "periods": [
+    "day",
+    "week",
+    "month"
+  ],
+  "week_start": "MONDAY",
+  "valuation_at": "LAST_REQUIRED_TRADING_DAY",
+  "membership_boundaries": "UNKNOWN",
+  "history_years": 5,
+  "timezone": "Asia/Shanghai",
+  "scheduler": {
+    "enabled": true,
+    "times": [
+      "19:30",
+      "19:45",
+      "20:15"
+    ],
+    "in_process_only": true
+  },
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8765
+  },
+  "snapshot": "industry-workbench-manifest-v1",
+  "legacy_optional": true,
+  "research_grade": "RESEARCH_ONLY",
+  "decision_eligible": false,
+  "production_approved": false,
+  "git_commits_authorized": false
+}
