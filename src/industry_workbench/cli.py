@@ -14,6 +14,8 @@ import sys
 import tarfile
 import tempfile
 
+from .credentials import STARTUP_ERROR_MESSAGES, configure_startup_token
+
 SOURCE_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -267,7 +269,15 @@ def main(argv: list[str] | None = None) -> int:
                 raise DataError("LEGACY_DATA_ROOT_REQUIRES_IMPORT")
             store = FileStore(root, development=args.development)
             if args.command == "serve":
-                serve(store, port=args.port, no_scheduler=args.no_scheduler)
+                if not 1 <= args.port <= 65535:
+                    raise DataError("INVALID_PORT")
+                # Explicit offline startup must remain usable even if the
+                # local credential configuration is missing or damaged.
+                credential_source = "NOT_CHECKED" if args.no_scheduler else configure_startup_token()
+                missing_token = credential_source == "NONE"
+                if missing_token:
+                    print("未配置 Tushare Token：可以浏览已有数据，本次自动更新已关闭。需要取数时请重启并输入 Token。", flush=True)
+                serve(store, port=args.port, no_scheduler=args.no_scheduler or missing_token)
                 return 0
             if args.command == "verify":
                 result = verify_batch(store, args.batch_id)
@@ -290,7 +300,7 @@ def main(argv: list[str] | None = None) -> int:
         code = getattr(exc, "code", None) or type(exc).__name__
         if not isinstance(code, str) or not re.fullmatch(r"[A-Za-z0-9_]{1,96}", code):
             code = "UNEXPECTED_ERROR"
-        print(json.dumps({"error": {"code": code, "message": "操作未完成；请按安装使用手册检查环境与数据。"}}, ensure_ascii=False), file=sys.stderr)
+        print(json.dumps({"error": {"code": code, "message": STARTUP_ERROR_MESSAGES.get(code, "操作未完成；请按安装使用手册检查环境与数据。")}}, ensure_ascii=False), file=sys.stderr)
         return 1
 
 
