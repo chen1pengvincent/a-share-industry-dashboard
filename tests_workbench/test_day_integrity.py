@@ -146,6 +146,35 @@ class DayIntegrityTests(unittest.TestCase):
         with self.assertRaisesRegex(DataError, "INDEPENDENT_RECALCULATION_FAILED"):
             self.pipeline._load_checkpoint("20260917", self.pipeline.source_check())
 
+    def test_formal_reader_rejects_development_input_and_capture_identity(self):
+        manifest = self.latest()
+        original = manifest["days"]["20260917"]
+        formal = FileStore(self.store.root)
+
+        def coherent_refs(*, provider="LIVE_SECURE_TUSHARE", dirty=False, commit="a" * 40):
+            refs = deepcopy(original)
+            inputs = self.store.read_json(refs["input"])
+            inputs["provider_kind"] = provider
+            inventory = self.store.read_json(refs["input_source"]["inventory"])
+            inventory.update(commit=commit, git_dirty=dirty)
+            refs["input_source"]["identity"].update(commit=commit, git_dirty=dirty)
+            with self.store.writer():
+                refs["input"] = self.store.put_json(inputs, "day_input")
+                refs["input_source"]["inventory"] = self.store.put_json(inventory, "source_identity")
+            return refs
+
+        valid = coherent_refs()
+        self.assertEqual(validate_day_refs(formal, "20260917", valid)[0]["provider_kind"], "LIVE_SECURE_TUSHARE")
+        for overrides in ({"provider": "TEST_INJECTED_CLIENT"}, {"provider": None}, {"dirty": True},
+                          {"dirty": "False"}, {"commit": None}, {"commit": ""}, {"commit": "not-a-commit"}):
+            with self.subTest(overrides=overrides):
+                refs = coherent_refs(**overrides)
+                # The failure is semantic, not a corrupt hash or archive.
+                self.store.verify_refs(refs)
+                with self.assertRaisesRegex(DataError, "DEVELOPMENT_INPUT_IN_FORMAL_ROOT"):
+                    validate_day_refs(formal, "20260917", refs)
+                self.assertEqual(validate_day_refs(self.store, "20260917", refs)[0]["trade_date"], "20260917")
+
 
 if __name__ == "__main__":
     unittest.main()

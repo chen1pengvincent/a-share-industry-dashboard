@@ -53,7 +53,7 @@ MemberRow={uid,ts_code,name,membership_state,evidence_kind,pe_ttm,pb,flow_cent,n
 
 `industry_history` 保留 `uid/dates/values/identity`，新增与 dates 一一对应的 `metrics: list[dict[str,Metric]]`。新批次按行业一次读取完整指标；旧批次没有 metrics 时只读同批已验证 daily_view。存在但损坏的 metrics 不静默降级。HTTP 响应结构不变，小样本、原因与覆盖字段不再丢失。
 
-日分片的日期键、input/result 的 trade_date、指标 metric_date 必须一致；input_contract_version 必须受支持，result_source_sha256 必须匹配所属检查点或批次的冻结源码，input_source 的 identity/inventory/snapshot 必须闭合。取数源码可以早于获准重算源码，不要求等于当前运行 checkout。恢复检查点还需通过独立金融复算；失败不改日期、不覆盖旧批次。
+日分片的日期键、input/result 的 trade_date、指标 metric_date 必须一致；input_contract_version 必须受支持，result_source_sha256 必须匹配所属检查点或批次的冻结源码，input_source 的 identity/inventory/snapshot 必须闭合。取数源码可以早于获准重算源码，不要求等于当前运行 checkout。恢复检查点还需通过独立金融复算；正式目录要求输入为 LIVE_SECURE_TUSHARE、捕获源码 git_dirty=false 且存在合法提交身份。开发目录不授予正式身份。失败不改日期、不覆盖旧批次。
 
 ## HTTP -> UI
 

@@ -73,4 +73,10 @@ def validate_day_refs(store, day, refs, *, expected_result_source_sha256=None, v
             if isinstance(metric, dict) and "metric_date" in metric and metric["metric_date"] != day:
                 raise DataError("DAY_METRIC_DATE_MISMATCH")
     _capture_source(store, refs.get("input_source"), verified_sources if verified_sources is not None else set())
+    if not store.development:
+        capture = refs["input_source"]["identity"]
+        commit = capture.get("commit")
+        if (inputs.get("provider_kind") != "LIVE_SECURE_TUSHARE" or capture.get("git_dirty") is not False
+                or not isinstance(commit, str) or not re.fullmatch(r"(?:[a-f0-9]{40}|[a-f0-9]{64})", commit)):
+            raise DataError("DEVELOPMENT_INPUT_IN_FORMAL_ROOT")
     return inputs, result
