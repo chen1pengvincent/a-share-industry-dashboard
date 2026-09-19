@@ -22,11 +22,12 @@ from zoneinfo import ZoneInfo
 from .metrics import compute_day
 from .models import DataError, json_bytes, parse_date
 from .periods import open_dates
-from .query import QueryService, compile_views
+from .query import compile_views
 from .storage import atomic_write, source_identity, utc_now
 from .validation import audit_day
 from .runtime import environment_identity, require_supported_environment
 from .history_state import HistoryState
+from .day_integrity import validate_day_refs
 from .taxonomy import DataError as ProviderDataError
 
 SHANGHAI = ZoneInfo("Asia/Shanghai")
@@ -128,9 +129,14 @@ class Pipeline:
             raise DataError("CHECKPOINT_INVALID") from None
         if value.get("trade_date") != day:
             raise DataError("CHECKPOINT_DATE_MISMATCH")
+        if not isinstance(value.get("source_sha256"), str) or not re.fullmatch(r"[a-f0-9]{64}", value["source_sha256"]):
+            raise DataError("CHECKPOINT_SOURCE_INVALID")
         self.store.verify_refs(value)
+        inputs, result = validate_day_refs(self.store, day, value.get("day_refs"),
+            expected_result_source_sha256=value.get("source_sha256"))
         if value.get("source_sha256") != source["tree_sha256"]:
             return None
+        audit_day(inputs, result)
         return value["day_refs"]
 
     def history_status(self, current=None) -> dict:
@@ -147,7 +153,8 @@ class Pipeline:
         as_of = max(days)
         if history_start > as_of:
             raise DataError("HISTORY_RANGE_INVERTED")
-        views = compile_views(self.store, days, calendar, progress)
+        views = compile_views(self.store, days, calendar, progress,
+                              expected_result_source_sha256=source["tree_sha256"])
         expected = [d for d in open_dates(calendar) if history_start <= d <= as_of]
         missing = [d for d in expected if d not in days]
         views["coverage"].update(start=history_start, first_available=min(days), end=as_of,
@@ -240,8 +247,10 @@ class Pipeline:
                 # An old result is never relabeled as if it used the new code.
                 # Recompute from the frozen normalized inputs and preserve their
                 # capture source. New query views are always rebuilt below.
+                verified_sources = set()
                 for old_day, old_refs in sorted(days.items()):
-                    inputs = self.store.read_json(old_refs["input"])
+                    inputs, _ = validate_day_refs(self.store, old_day, old_refs,
+                        expected_result_source_sha256=current["source"]["tree_sha256"], verified_sources=verified_sources)
                     old_refs.setdefault("input_source", {"identity":{k:current["source"][k] for k in ("commit","git_dirty","tree_sha256")},"snapshot":current.get("source_snapshot"),"inventory":self.store.put_json(current["source"],"source_identity")})
                     rebuilt=compute_day(inputs)
                     rebuilt["audit"]["independent_recalculation"]=audit_day(inputs,rebuilt)
@@ -327,7 +336,7 @@ class JobManager:
     Explicit ``max_days`` retains the CLI/scheduler's one-chunk contract.
     """
 
-    _PRIORITY = {"update": 0, "export": 1, "backfill": 2}
+    _PRIORITY = {"update": 0, "backfill": 1}
     _INTERRUPTED = {"code": "PROCESS_INTERRUPTED", "message": "任务因服务退出中断；已完成的每日检查点可在重试时复用。"}
     _PERSISTENCE_ERROR = {"code": "JOB_PERSISTENCE_FAILED", "message": "任务记录无法保存；已完成的每日检查点保留，请恢复存储后重试。"}
 
@@ -395,7 +404,7 @@ class JobManager:
 
     def submit(self, kind: str, params: dict | None = None, *, asynchronous=True) -> dict:
         params = deepcopy(params or {})
-        if kind not in {"update", "backfill", "export"}:
+        if kind not in {"update", "backfill"}:
             raise DataError("INVALID_JOB_KIND")
         if not isinstance(params.get("retry_failed", False), bool) or params.get("retry_failed") and kind != "backfill":
             raise DataError("INVALID_HISTORY_RETRY")
@@ -406,8 +415,7 @@ class JobManager:
             params.pop("_attempted_dates", None)
             if params.get("retry_failed"):
                 params["retry_id"] = "RETRY-" + uuid.uuid4().hex
-        if kind != "export":
-            self.pipeline.source_check()
+        self.pipeline.source_check()
         with self._lock:
             if self._stop.is_set():
                 raise DataError("SERVICE_STOPPING")
@@ -525,25 +533,15 @@ class JobManager:
                     return
                 job.update(status="RUNNING", updated_at=utc_now())
                 self._persist(job)
-            if job["kind"] == "export":
-                from .exports import build_export
-                extension = job["params"].get("format", "csv")
-                if extension not in {"csv", "xlsx"}:
-                    raise DataError("INVALID_EXPORT_FORMAT")
-                filename = f"{job_id}.{extension}"
-                result = build_export(QueryService(self.store), job["params"], self.store.path(f"exports/{filename}"))
-                result.pop("path", None)
-                result["download_url"] = f"/api/v2/exports/{filename}"
-            else:
-                def yield_for_daily():
-                    with self._lock:
-                        return self._stop.is_set() or job["kind"] == "backfill" and any(
-                            self._jobs[key]["kind"] == "update" for key in self._queue)
-                run_params = deepcopy(job["params"])
-                if job["kind"] == "backfill":
-                    previous = job.get("result") or {}
-                    run_params["_attempted_dates"] = previous.get("attempted_days", previous.get("captured_days", []))
-                result = self.pipeline.run(job["kind"], run_params, progress=lambda *args: self._progress(job_id, *args), should_yield=yield_for_daily)
+            def yield_for_daily():
+                with self._lock:
+                    return self._stop.is_set() or job["kind"] == "backfill" and any(
+                        self._jobs[key]["kind"] == "update" for key in self._queue)
+            run_params = deepcopy(job["params"])
+            if job["kind"] == "backfill":
+                previous = job.get("result") or {}
+                run_params["_attempted_dates"] = previous.get("attempted_days", previous.get("captured_days", []))
+            result = self.pipeline.run(job["kind"], run_params, progress=lambda *args: self._progress(job_id, *args), should_yield=yield_for_daily)
             with self._lock:
                 if job["kind"] == "backfill":
                     previous = (job.get("result") or {}).get("captured_days", [])

@@ -223,7 +223,8 @@ class IndependentPublicationTests(unittest.TestCase):
         unresolved = next(row for row in result["members"] if row["ts_code"] == "000003.SZ")
         self.assertIsNone(unresolved.get("known_subtotal"))
         with self.store.writer():
-            days = {DAY: {"input": self.store.put_json(inputs, "day_input"), "result": self.store.put_json(result, "day_result")}}
+            from support_day_refs import put_day_refs
+            days = {DAY: put_day_refs(self.store, inputs, result)}
             payload = self.payload("member-reconciliation")
             payload.update(days=days, history_start="20260914", views=compile_views(self.store, days, ["20260914", "20260915", DAY]))
             manifest = self.store.publish(payload)
@@ -331,9 +332,9 @@ class IndependentPublicationTests(unittest.TestCase):
         with self.store.writer():
             days = {}
             for day in observed:
+                from support_day_refs import put_day_refs
                 result = {"trade_date": day, "industries": [independent_row(day)], "members": []}
-                ref = self.store.put_json(result, "day_result")
-                days[day] = {"result": ref, "input": self.store.put_json({"trade_date": day}, "day_input")}
+                days[day] = put_day_refs(self.store, {"trade_date": day}, result)
             views = compile_views(self.store, days, calendar)
             payload = self.payload()
             payload.update(as_of="20260216", history_start="20260202", days=days, views=views)

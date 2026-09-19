@@ -41,7 +41,7 @@ def _locked_dependencies(source_root: Path) -> dict[str, str]:
             raise ValueError("DEPENDENCY_LOCK_INVALID")
         names.add(_package_key(match[1]))
         pins[match[1]] = match[2]
-    if not included or not {"xlsxwriter", "openpyxl", "et-xmlfile", "pypinyin"} <= names:
+    if not included or "pypinyin" not in names:
         raise ValueError("DEPENDENCY_LOCK_INVALID")
     return pins
 

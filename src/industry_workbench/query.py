@@ -9,6 +9,7 @@ from datetime import timedelta
 from .models import DataError,TAXONOMIES,decimal_value,decimal_text,metric,parse_date
 from .periods import CalendarIndex,aggregate_period,open_dates,period_dates
 from .sorting import add_name_sort_keys
+from .day_integrity import validate_day_refs
 
 PERCENTILES={"pe_ttm_median":"pe_percentile","pb_median":"pb_percentile",
              "official_pe":"official_pe_percentile","official_pb":"official_pb_percentile"}
@@ -60,16 +61,16 @@ class HistoryAccumulator:
         return rows
 
 
-def compile_views(store,day_refs: dict,calendar: list,progress=None) -> dict:
+def compile_views(store,day_refs: dict,calendar: list,progress=None,*,expected_result_source_sha256=None) -> dict:
     """Reproducible projections. Stream raw daily shards; no all-stock history load."""
     dates=sorted(day_refs)
     if not dates:raise DataError("NO_DAILY_DATA")
     as_of=dates[-1];calendar_index=CalendarIndex.from_rows(calendar);history=HistoryAccumulator(calendar_index)
     index={"day":{},"week":{},"month":{},"history":{}}
     pending={"week":{},"month":{}};pending_key={"week":None,"month":None}
-    columns={};catalogue=[];availability={};days_with_gaps=[]
+    columns={};catalogue=[];availability={};days_with_gaps=[];verified_sources=set()
     for number,day in enumerate(dates,1):
-        result=store.read_json(day_refs[day]["result"])
+        _,result=validate_day_refs(store,day,day_refs[day],expected_result_source_sha256=expected_result_source_sha256,verified_sources=verified_sources)
         rows=history.enrich(day,result["industries"])
         if result.get("audit",{}).get("unknown_taxonomies") or any(r["status"]!="OK" for r in rows):days_with_gaps.append(day)
         for row in rows:
@@ -86,8 +87,9 @@ def compile_views(store,day_refs: dict,calendar: list,progress=None) -> dict:
         catalogue=rows
         for row in rows:
             uid=row["uid"]
-            entry=columns.setdefault(uid,{"uid":uid,"dates":[],"values":{},"identity":{k:row.get(k) for k in ("uid","name","code","taxonomy","version","level","parent_uid")}})
+            entry=columns.setdefault(uid,{"uid":uid,"dates":[],"values":{},"metrics":[],"identity":{k:row.get(k) for k in ("uid","name","code","taxonomy","version","level","parent_uid")}})
             prior=len(entry["dates"]);entry["dates"].append(day)
+            entry["metrics"].append(row["metrics"])
             for key in set(entry["values"])|set(row["metrics"]):
                 entry["values"].setdefault(key,[None]*prior).append(row["metrics"].get(key,{}).get("value"))
         for kind in ("week","month"):
@@ -153,12 +155,30 @@ class QueryService:
         if period_kind=="day":
             data=self.store.read_json(m["views"]["history"][uid])
             positions={day:i for i,day in enumerate(data["dates"])}
+            complete_metrics=data.get("metrics")
+            if "metrics" in data and (not isinstance(complete_metrics,list) or len(complete_metrics)!=len(data["dates"]) or any(not isinstance(item,dict) for item in complete_metrics)):
+                raise DataError("HISTORY_METRIC_COLUMNS_INVALID")
             calendar=self.store.read_json(m["views"]["calendar"])
             dates=[d for d in open_dates(calendar) if m.get("history_start",data["dates"][0]) <= d <= m["as_of"]]
             rows=[]
             for day in dates:
                 i=positions.get(day)
-                rows.append({"trade_date":day,"metrics":{k:metric(v[i] if i is not None else None,day,reason="HISTORICAL_VALUE_UNAVAILABLE" if i is None or v[i] is None else None) for k,v in data["values"].items()}})
+                if i is None:
+                    metrics={k:metric(None,day,reason="HISTORICAL_VALUE_UNAVAILABLE") for k in data["values"]}
+                elif complete_metrics is not None:
+                    metrics=deepcopy(complete_metrics[i])
+                else:
+                    # Published compact histories contain values only. The same batch's
+                    # hash-verified day view retains the original Metric, including its
+                    # sample status and coverage; old batches need no data migration.
+                    ref=m["views"]["day"].get(day)
+                    if ref is None:raise DataError("HISTORY_DAY_VIEW_MISSING")
+                    view=self.store.read_json(ref)
+                    if view.get("trade_date")!=day:raise DataError("HISTORY_DAY_DATE_MISMATCH")
+                    matches=[r for r in view["industries"] if r["uid"]==uid]
+                    if len(matches)!=1:raise DataError("HISTORY_DAY_INDUSTRY_MISMATCH")
+                    metrics=deepcopy(matches[0]["metrics"])
+                rows.append({"trade_date":day,"metrics":metrics})
         elif period_kind in ("week","month"):
             rows=[]
             calendar=CalendarIndex.from_rows(self.store.read_json(m["views"]["calendar"]))

@@ -1,3 +1,5 @@
+> 2026-09-19 更新：按用户明确要求移除当前工作台的 Excel/CSV 导出；原方案中的导出条款被本次决定替代。金融统计定义不变。
+
 # 集成接口（实施固定契约）
 
 本文件将已批准产品方案落实为模块边界。主项目 `src/industry_workbench`；旧 `src/swivd` 保持兼容。日期一律 YYYYMMDD；时间带 UTC offset；JSON 金融小数为十进制定点字符串（不允许 NaN/Inf），资金金额 `flow_cent` 为0.01万元整数的字符串。
@@ -13,7 +15,6 @@
 | validation | 独立有理数重算、数量和状态检查 | 标准库 | 复用被测聚合函数、网络或写入 |
 | query | 固定批次查询、周期投影和历史统计 | 领域层、store、排序键 | 取数、写请求处理、DOM |
 | jobs / scheduler | 数据流程编排、检查点、优先队列、应用内定时 | provider、领域、store、query、validation | HTTP协议和页面布局 |
-| exports | 同批次CSV/Excel、精确排序、回读后原子生成 | query、排序、文件格式依赖 | 独立Tushare取数、重定义统计 |
 | runtime | Python/平台/依赖锁的只读检查和环境证据 | 标准库、旧锁解析器 | 凭据、安装依赖、任何写入 |
 | server / cli | 本地传输边界和显式命令 | 应用服务 | 自己实现财务公式、隐式启动旧任务 |
 | web | 导航、筛选、精确显示和三态排序 | 本地只读API及显式作业API | 中位数、百分位、资金聚合 |
@@ -47,8 +48,12 @@ DayInputs = {
 Metric={value:null|string,status:OK|SMALL_SAMPLE|NA,reason_codes:[],metric_date,valid_count?,expected_count?,received_count?}。
 metrics keys: pe_ttm_median,pb_median,official_pe,official_pb,close,flow_cent,net_mf_vol,pe_percentile,pb_percentile,official_pe_percentile,official_pb_percentile。
 另有return_5d/return_mtd/return_ytd，单位为百分数（1代表1%，前端不得再乘100）。百分位附first_valid_date/last_valid_date/expected_days/missing_days/equal_count，包含当日的有效日样本。
-counts: member_count,basic_received,pe_valid,pb_valid,flow_expected,flow_received。member_count指期末已确认成员数，并非存在未知归属时的真实总成员数；flow_expected/flow_received是期末应有/已取资金记录数，并非周/月期间所有日记录数。UI/导出名称必须明确这些范围。
+counts: member_count,basic_received,pe_valid,pb_valid,flow_expected,flow_received。member_count指期末已确认成员数，并非存在未知归属时的真实总成员数；flow_expected/flow_received是期末应有/已取资金记录数，并非周/月期间所有日记录数。UI名称必须明确这些范围。
 MemberRow={uid,ts_code,name,membership_state,evidence_kind,pe_ttm,pb,flow_cent,net_mf_vol,has_trade,is_endpoint_member}。
+
+`industry_history` 保留 `uid/dates/values/identity`，新增与 dates 一一对应的 `metrics: list[dict[str,Metric]]`。新批次按行业一次读取完整指标；旧批次没有 metrics 时只读同批已验证 daily_view。存在但损坏的 metrics 不静默降级。HTTP 响应结构不变，小样本、原因与覆盖字段不再丢失。
+
+日分片的日期键、input/result 的 trade_date、指标 metric_date 必须一致；input_contract_version 必须受支持，result_source_sha256 必须匹配所属检查点或批次的冻结源码，input_source 的 identity/inventory/snapshot 必须闭合。取数源码可以早于获准重算源码，不要求等于当前运行 checkout。恢复检查点还需通过独立金融复算；失败不改日期、不覆盖旧批次。
 
 ## HTTP -> UI
 
@@ -63,9 +68,7 @@ GET /api/v2/jobs/active 与 /api/v2/jobs/{job_id} -> Job或{job:null}。
 GET /api/v2/batches/{batch}/quality?period_kind=&period_key= -> {batch_id,period,days:[{trade_date,captured_at,audit,source_ref}],missing_dates}；audit.classification_coverage按taxonomy/level分组，含unknown_stocks与资金诊断。所有行业/成员响应附name_sort_key（固定pypinyin版本的中文排序键）。catalog另含industries身份全集用于父行业筛选。
 POST /api/v2/jobs/update body={} -> Job
 POST /api/v2/jobs/backfill body={start_date,end_date,retry_failed?:boolean} -> Job；retry_failed默认false，仅接受JSON布尔值，不接受字符串/数字。未知参数拒绝。
-POST /api/v2/jobs/export body={batch_id,taxonomy,level_or_series,period_kind,period_key,format:'csv'|'xlsx',query:'',sort_key:null|string,sort_direction:'default'|'asc'|'desc'} -> Job，完成 result.download_url 可GET。
-CSV另外传page/view/valuation_basis/parent_uid以精确保持当前视图；XLSX明确导出同一批次、周期的全部四分类、口径说明、审计6个Sheet，不受当前筛选影响。
-导出完整性诊断列按周期解释：日频资金已取/应有记录数来自counts.flow_received/flow_expected，缺日保持NA；周/月有效/应有交易日数来自期间指标的received_count/expected_count。不能把日频股票记录数标成交易日数。
+当前作业只接受 update/backfill；导出提交与文件下载端点已移除，旧URL返回404，不创建作业。
 POST头：Content-Type: application/json，X-Workbench-Nonce: bootstrap.nonce。
 Job={job_id,kind,status:QUEUED|RUNNING|SUCCEEDED|FAILED,phase,completed_units,total_units,message,result:null|dict,error:null|{code,message}}。
 错误响应={error:{code,message}}；UI一律textContent安全显示。GET不联网、不创建作业。

@@ -175,6 +175,38 @@ class ApplicationTests(unittest.TestCase):
         with self.assertRaisesRegex(DataError, "CLEAN_COMMITTED_SOURCE_REQUIRED"):
             formal.source_check()
 
+    def test_removed_export_job_is_rejected_before_state_or_source_access(self):
+        before = list(self.store.root.rglob("*")) if self.store.root.exists() else []
+        with patch.object(self.pipeline, "source_check", side_effect=AssertionError("must reject unsupported job first")):
+            with self.assertRaisesRegex(DataError, "INVALID_JOB_KIND"):
+                self.jobs.submit("export", {"format": "csv"})
+        self.assertEqual(list(self.store.root.rglob("*")) if self.store.root.exists() else [], before)
+        self.assertEqual(FixtureProvider.calls, [])
+
+    def test_removed_export_http_routes_do_not_read_files_or_create_jobs(self):
+        import io
+        from email.message import Message
+        from types import SimpleNamespace
+        from industry_workbench.server import Handler
+        handler = Handler.__new__(Handler)
+        handler.server = SimpleNamespace(app=SimpleNamespace(jobs=self.jobs, store=self.store))
+        with patch.object(self.jobs, "submit", side_effect=AssertionError("removed route created a job")), \
+                patch.object(self.jobs, "get", side_effect=AssertionError("removed route read an export job")):
+            for extension in ("csv", "xlsx"):
+                handler.path = "/api/v2/exports/JOB-" + "a" * 20 + "." + extension
+                with self.assertRaisesRegex(DataError, "ROUTE_NOT_FOUND"):
+                    handler._get()
+            handler.path = "/api/v2/jobs/export"
+            handler.rfile = io.BytesIO(b"{}")
+            handler.headers = Message()
+            handler.headers["Content-Type"] = "application/json"
+            handler.headers["Content-Length"] = "2"
+            with patch.object(handler, "_allowed"), patch.object(handler, "_json") as reply:
+                handler.do_POST()
+                self.assertEqual(reply.call_args.args[0], 404)
+                self.assertEqual(reply.call_args.args[1]["error"]["code"], "ROUTE_NOT_FOUND")
+        self.assertFalse(self.store.root.exists())
+
     def test_source_change_during_fetch_is_not_published(self):
         source = self.source
         class Changing(FixtureProvider):
@@ -284,6 +316,13 @@ class ApplicationTests(unittest.TestCase):
             self.assertEqual(request("POST", "/legacy/api/v1/jobs/update", "{}", {"Content-Type": "application/json", "X-Workbench-Nonce": nonce})[0], 403)
             self.assertEqual(request("GET", "/../../AGENTS.md")[0], 404)
             post_headers = {"Content-Type": "application/json", "X-Workbench-Nonce": nonce}
+            status, body, _ = request("POST", "/api/v2/jobs/export", "{}", post_headers)
+            self.assertEqual(status, 404)
+            self.assertEqual(json.loads(body)["error"]["code"], "ROUTE_NOT_FOUND")
+            for extension in ("csv", "xlsx"):
+                status, body, _ = request("GET", "/api/v2/exports/JOB-" + "a" * 20 + "." + extension)
+                self.assertEqual(status, 404)
+                self.assertEqual(json.loads(body)["error"]["code"], "ROUTE_NOT_FOUND")
             for bad in ("true", 1, 0, None, []):
                 payload = json.dumps({"start_date": "20260914", "end_date": "20260916", "retry_failed": bad})
                 status, body, _ = request("POST", "/api/v2/jobs/backfill", payload, post_headers)

@@ -1,7 +1,6 @@
 """Loopback HTTP adapter. Reads are local; writes enter the shared job manager."""
 from __future__ import annotations
 
-import hashlib
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import mimetypes
@@ -160,16 +159,6 @@ class Handler(BaseHTTPRequestHandler):
                     raise DataError("UNKNOWN_QUERY_PARAMETER")
                 result = app.query.industries(batch, **params)
             return self._json(200, result)
-        match = re.fullmatch(r"/api/v2/exports/(JOB-[a-f0-9]{20}\.(csv|xlsx))", route)
-        if match:
-            job = app.jobs.get(match[1].rsplit(".", 1)[0])
-            if job["kind"] != "export" or job["status"] != "SUCCEEDED":
-                raise DataError("EXPORT_NOT_FOUND")
-            content = app.store.path(f"exports/{match[1]}").read_bytes()
-            if hashlib.sha256(content).hexdigest() != job["result"]["sha256"]:
-                raise DataError("EXPORT_HASH_MISMATCH")
-            mime = "text/csv; charset=utf-8" if match[2] == "csv" else "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            return self._send(200, content, mime, {"Content-Disposition": f'attachment; filename="{match[1]}"'})
         if route == "/legacy":
             return self._send(302, b"", "text/plain", {"Location": "/legacy/"})
         if route == "/legacy/bootstrap.js":
@@ -214,7 +203,7 @@ class Handler(BaseHTTPRequestHandler):
             body = json.loads(raw, object_pairs_hook=unique_object, parse_constant=lambda _: (_ for _ in ()).throw(DataError("NONFINITE_JSON")))
             if not isinstance(body, dict):
                 raise DataError("JSON_OBJECT_REQUIRED")
-            match = re.fullmatch(r"/api/v2/jobs/(update|backfill|export)", self.path)
+            match = re.fullmatch(r"/api/v2/jobs/(update|backfill)", self.path)
             if not match:
                 raise DataError("ROUTE_NOT_FOUND")
             if match[1] == "update" and body:

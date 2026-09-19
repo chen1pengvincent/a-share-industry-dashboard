@@ -1,4 +1,4 @@
-"""Portable Chinese collation and exact financial ordering shared by exports/UI."""
+"""Portable Chinese collation and exact financial ordering for query/UI."""
 from __future__ import annotations
 
 from functools import cmp_to_key
@@ -50,7 +50,7 @@ def default_sort(page="fusion", view="detail", *, members=False, contribution=Fa
     if members:
         return "ts_code", "asc"
     if page not in PAGES or view not in VIEWS:
-        raise DataError("INVALID_EXPORT_VIEW")
+        raise DataError("INVALID_SORT_VIEW")
     if page == "moneyflow":
         return "flow_cent", "desc"
     if page == "valuation":
@@ -102,7 +102,7 @@ def filter_and_sort(rows: list[dict], params: dict) -> list[dict]:
         rows = [row for row in rows if row.get("parent_uid") == parent]
     query = params.get("query", "")
     if not isinstance(query, str) or len(query) > 500:
-        raise DataError("INVALID_EXPORT_QUERY")
+        raise DataError("INVALID_FILTER_QUERY")
     query = query.strip().lower()
     rows = [row for row in rows if not query or any(query in str(row.get(key) or "").lower() for key in ("name", "code"))]
     return sort_rows(rows, params.get("sort_key"), params.get("sort_direction", "default"),

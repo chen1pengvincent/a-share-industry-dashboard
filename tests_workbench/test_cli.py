@@ -91,10 +91,15 @@ class CliTests(unittest.TestCase):
             archive.addfile(item, io.BytesIO(body))
         with self.store.writer():
             raw = self.store.put_json({"data": {"rows": []}}, "tushare_response")
-            nested = self.store.put_json({"source_refs": [raw]}, "day_input")
+            nested = self.store.put_json({"trade_date": "20260901", "source_refs": [raw]}, "day_input")
             source_ref = self.store.put_bytes(archive_bytes.getvalue(), "source_snapshot_tar_gz")
-            manifest = self.store.publish({"as_of": "20260901", "source": {"files": source_files, "git_dirty": True, "commit": "fixture", "tree_sha256": hashlib.sha256(json_bytes(source_files)).hexdigest()},
-                                           "source_snapshot": source_ref, "days": {"20260901": {"input": nested}},
+            source = {"files": source_files, "git_dirty": True, "commit": "fixture", "tree_sha256": hashlib.sha256(json_bytes(source_files)).hexdigest()}
+            refs = {"input": nested, "result": self.store.put_json({"trade_date": "20260901", "industries": []}, "day_result"),
+                    "input_contract_version": "industry-workbench-day-input-v1", "result_source_sha256": source["tree_sha256"],
+                    "input_source": {"identity": {key: source[key] for key in ("commit", "git_dirty", "tree_sha256")},
+                                     "inventory": self.store.put_json(source, "source_identity"), "snapshot": source_ref}}
+            manifest = self.store.publish({"as_of": "20260901", "source": source,
+                                           "source_snapshot": source_ref, "days": {"20260901": refs},
                                            "provider_kind": "TEST_INJECTED_CLIENT", "publication_state": "PUBLISHED_WITH_GAPS"})
         return manifest, raw
 
@@ -102,7 +107,7 @@ class CliTests(unittest.TestCase):
         manifest, raw = self.publish_fixture()
         before = self.inventory(self.store.root)
         result = cli.verify_batch(self.store)
-        self.assertEqual(result["verified_objects"], 3)
+        self.assertEqual(result["verified_objects"], 5)
         self.assertEqual(result["batch_id"], manifest["batch_id"])
         self.assertEqual(before, self.inventory(self.store.root))
         self.store.path(raw["path"]).write_bytes(b"corrupt")
@@ -144,7 +149,7 @@ class CliTests(unittest.TestCase):
             manifest["days"]["20260901"]["input_source"] = {"identity": {key: source[key] for key in ("commit", "git_dirty", "tree_sha256")}, "inventory": inventory, "snapshot": snapshot}
             updated = self.store.publish(manifest)
         self.assertEqual(cli.verify_batch(self.store)["batch_id"], updated["batch_id"])
-        self.assertEqual(cli.verify_batch(self.store)["verified_objects"], 5)
+        self.assertEqual(cli.verify_batch(self.store)["verified_objects"], 6)
 
     def legacy_fixture(self):
         root = self.base / "old" / RUN

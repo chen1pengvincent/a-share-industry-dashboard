@@ -1,3 +1,5 @@
+> 此文保留集成时的历史验收记录。当前版本已移除 Excel/CSV 下载，并修复排名、历史指标状态与检查点校验；现行范围、未解决问题及本轮验证见 [当前状态](CURRENT_STATUS.md)。下文旧导出验收不代表当前功能。
+
 # 集成实现交付审阅
 
 本次实现已完成代码、独立环境、真实数据和最终原生 Chrome 验收。本页是 2026-09-18 本地提交前的验收快照；用户已批准本地提交及验收后正式启用。验证范围见 [实施状态](IMPLEMENTATION_STATUS.md)，随后实际提交和正式首更以本机 `.local/evidence/formal-first-update-001/receipt.json` 及正式运行目录的 current/manifest 为准。

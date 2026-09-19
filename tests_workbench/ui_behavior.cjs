@@ -110,6 +110,81 @@ test("late filter responses cannot overwrite the selected period", async () => {
   pending[0](ok({ batch_id: "B1", rows: [{ uid: "old", name: "过期响应", code: "0", metrics: {} }], period: {} })); await first;
   assert.equal(h.ui.state.rows[0].uid, "new");
 });
+test("clearing a date clears stale rows and details, rejects late data, and recovers", async () => {
+  const h = harness(); await settle();
+  await h.ui.openDetail(h.ui.state.rows[0]);
+  assert.equal(h.nodes.get("detailDialog").open, true);
+  h.nodes.get("qualitySummary").textContent = "过期覆盖统计";
+  h.nodes.get("qualityContent").append(new Node());
+  let resolvePending;
+  h.interceptor = async url => url.includes("/industries?") ? new Promise(resolve => { resolvePending = resolve; }) : undefined;
+  h.nodes.get("periodDate").value = "2026-09-15"; h.nodes.get("periodDate").dispatch("change"); await settle();
+  assert.equal(h.ui.state.rows.length, 0);
+  assert.equal(h.nodes.get("detailDialog").open, false);
+  assert.equal(h.ui.state.period, null);
+  const count = h.requests.length;
+  h.nodes.get("periodDate").value = ""; h.nodes.get("periodDate").dispatch("change"); await settle();
+  assert.equal(h.requests.length, count);
+  assert.equal(h.nodes.get("dataArea").className.includes("loading"), false);
+  assert.match(h.nodes.get("errorText").textContent, /请选择有效/);
+  assert.equal(h.nodes.get("qualityContent").children.length, 0);
+  assert.doesNotMatch(h.nodes.get("qualitySummary").textContent, /过期/);
+  resolvePending(ok({ batch_id: "B1", rows: [{ uid: "stale", name: "已取消日期的行业", metrics: {} }], period: {} })); await settle();
+  assert.equal(h.ui.state.rows.length, 0);
+  assert.doesNotMatch(h.nodes.get("industryTable").textContent, /已取消日期的行业/);
+  h.interceptor = null;
+  h.nodes.get("periodDate").value = "2026-09-16"; h.nodes.get("periodDate").dispatch("change"); await settle();
+  assert.equal(h.ui.state.rows.length, 2);
+  assert.equal(h.nodes.get("errorPanel").hidden, true);
+});
+test("clearing a month invalidates its view without requesting a default latest period", async () => {
+  const h = harness(); await settle();
+  h.buttons.find(button => button.dataset.period === "month").click(); await settle();
+  const count = h.requests.length;
+  h.nodes.get("periodDate").value = ""; h.nodes.get("periodDate").dispatch("change"); await settle();
+  assert.equal(h.ui.state.periodKey, ""); assert.equal(h.ui.state.rows.length, 0);
+  assert.equal(h.requests.length, count);
+  assert.match(h.nodes.get("errorText").textContent, /请选择有效/);
+});
+test("full-scope flow ranks retain ties and gaps through filters and all three sort states", async () => {
+  const h = harness(); await settle();
+  h.ui.state.rows = [
+    { uid: "a", code: "4", name: "甲行业", parent_uid: "parentA", flow_rank: 1, metrics: { flow_cent: { value: "500", status: "OK" } } },
+    { uid: "b", code: "3", name: "乙行业", parent_uid: "parentB", flow_rank: 1, metrics: { flow_cent: { value: "500", status: "OK" } } },
+    { uid: "c", code: "2", name: "丙行业", parent_uid: "parentA", flow_rank: 3, metrics: { flow_cent: { value: "100", status: "OK" } } },
+    { uid: "d", code: "1", name: "缺失行业", parent_uid: "parentB", flow_rank: null, metrics: { flow_cent: { value: null, status: "NA" } } }
+  ];
+  const tableRows = () => h.nodes.get("industryTable").children[0].children.find(node => node.tagName === "TBODY").children;
+  const shownRanks = () => tableRows().map(row => row.children[1].textContent);
+  for (const page of ["fusion", "moneyflow"]) {
+    h.buttons.find(button => button.dataset.page === page).click();
+    const header = () => h.nodes.get("industryTable").querySelector('[data-sort="flow_rank"]');
+    assert.match(header().title, /搜索和父行业筛选保留原名次/);
+    header().click(); equal(shownRanks(), ["1", "1", "3", "—"]);
+    header().click(); equal(shownRanks(), ["3", "1", "1", "—"]);
+    header().click(); assert.equal(h.ui.state.sort.direction, "default");
+    equal(shownRanks(), page === "fusion" ? ["—", "3", "1", "1"] : ["1", "1", "3", "—"]);
+    h.nodes.get("search").value = "丙"; h.nodes.get("search").dispatch("input"); equal(shownRanks(), ["3"]);
+    h.nodes.get("search").value = ""; h.nodes.get("search").dispatch("input");
+    h.ui.state.parentUid = "parentA"; h.ui.render(); equal(shownRanks().slice().sort(), ["1", "3"]);
+    h.ui.state.parentUid = ""; h.ui.render();
+  }
+  equal(h.ui.state.rows.map(row => row.flow_rank), [1, 1, 3, null]);
+  h.buttons.find(button => button.dataset.page === "valuation").click();
+  assert.equal(h.nodes.get("industryTable").querySelector('[data-sort="flow_rank"]'), null);
+});
+test("all three pages operate without export or download controls", async () => {
+  const h = harness(); await settle();
+  for (const id of ["exportCsv", "exportXlsx", "downloadLink"]) assert.equal(h.nodes.has(id), false);
+  for (const page of ["valuation", "moneyflow", "fusion"]) {
+    h.buttons.find(button => button.dataset.page === page).click();
+    assert.equal(h.nodes.get("errorPanel").hidden, true);
+    assert.match(h.nodes.get("industryTable").textContent, /银行/);
+  }
+  h.ui.followJob({ job_id: "H1", kind: "backfill", status: "SUCCEEDED", result: { history_complete: true, scan_complete: true } }); await settle();
+  assert.equal(h.nodes.get("jobTitle").textContent, "所选范围交易日已补齐");
+  assert.equal(h.requests.some(request => /exports?|download/.test(request.url)), false);
+});
 test("new publication only offers an explicit unified batch switch", async () => {
   const h = harness(); await settle(); h.current = { batch_id: "B2", as_of: "20260917" };
   await h.ui.checkCurrent(); assert.equal(h.ui.state.batchId, "B1"); assert.equal(h.ui.state.readyBatch, "B2"); assert.equal(h.nodes.get("newBatch").hidden, false);
@@ -128,12 +203,6 @@ test("lost POST result recovers the existing job without second submission", asy
   h.interceptor = async (url, options) => { if (options.method === "POST") { posts++; throw new Error("lost response"); } if (url === "/api/v2/jobs/active" || url === "/api/v2/jobs/J1") return ok(job); return undefined; };
   await h.ui.submitJob("update", {}); await settle(); assert.equal(posts, 1); assert.equal(h.ui.state.jobId, "J1"); assert.equal(h.ui.state.batchId, "B1");
 });
-test("CSV exports fixed batch filter and exact sort context", async () => {
-  const h = harness(); await settle(); let payload;
-  h.interceptor = async (url, options) => { if (url === "/api/v2/jobs/export") { payload = JSON.parse(options.body); return ok({ job_id: "E1", kind: "export", status: "SUCCEEDED", result: {} }); } return undefined; };
-  h.ui.state.query = "银行"; h.ui.state.sort = { key: "flow_cent", direction: "desc" }; h.nodes.get("exportCsv").click(); await settle();
-  equal({ batch: payload.batch_id, query: payload.query, key: payload.sort_key, direction: payload.sort_direction, page: payload.page }, { batch: "B1", query: "银行", key: "flow_cent", direction: "desc", page: "fusion" });
-});
 test("same-day update completion clearly says already current without 1 over zero", async () => {
   const h = harness(); await settle();
   h.ui.followJob({ job_id: "U1", kind: "update", status: "SUCCEEDED", message: "已完成", completed_units: 1, total_units: 0,
@@ -141,14 +210,6 @@ test("same-day update completion clearly says already current without 1 over zer
   assert.equal(h.nodes.get("jobDetail").textContent, "已是最新（数据至 2026-09-17）");
   assert.equal(h.nodes.get("jobProgress").value, 100);
   assert.equal(h.ui.state.batchId, "B1");
-});
-test("export completion with no total hides zero over zero and keeps download ready", async () => {
-  const h = harness(); await settle();
-  h.ui.followJob({ job_id: "E1", kind: "export", status: "SUCCEEDED", message: "已完成", completed_units: 0, total_units: 0,
-    result: { download_url: "/api/v2/exports/fixture.csv" } }); await settle();
-  assert.equal(h.nodes.get("jobDetail").textContent, "已完成");
-  assert.equal(h.nodes.get("jobProgress").value, 100);
-  assert.equal(h.nodes.get("downloadLink").hidden, false);
 });
 test("successful completion hides stale zero over one verification phase counts", async () => {
   const h = harness(); await settle();
@@ -180,21 +241,17 @@ test("true zero returns and moneyflow render with strict native class tokens", a
     h.buttons.find(button => button.dataset.page === page).click();
     assert.equal(h.nodes.get("errorPanel").hidden, true);
     assert.equal(h.ui.state.rows.length, 2);
-    assert.equal(h.nodes.get("exportCsv").disabled, false);
     if (page === "valuation") assert.match(h.nodes.get("industryTable").textContent, /0\.00%/);
   }
   assert.throws(() => new Node().classList.add(""), /Invalid DOMTokenList/);
 });
-test("parent filter applies before sorting and is retained in CSV request", async () => {
+test("parent filter applies before sorting and resets outside hierarchy taxonomies", async () => {
   const h = harness(); await settle();
   h.ui.state.catalog.industries = [{ uid: "parent1", taxonomy: "SW", level: "L1", name: "银行", code: "1", name_sort_key: "yin hang" }, { uid: "parent2", taxonomy: "SW", level: "L1", name: "传媒", code: "2", name_sort_key: "chuan mei" }];
   h.ui.state.level = "L2"; h.ui.state.rows[0].parent_uid = "parent1"; h.ui.state.rows[1].parent_uid = "parent2";
   h.ui.updateParents(); assert.equal(h.nodes.get("parentFilter").hidden, false);
   h.nodes.get("parentIndustry").value = "parent1"; h.nodes.get("parentIndustry").dispatch("change");
   assert.equal(h.ui.visibleRows().length, 1); assert.equal(h.ui.visibleRows()[0].uid, "SW:L1:2");
-  let payload;
-  h.interceptor = async (url, options) => { if (url === "/api/v2/jobs/export") { payload = JSON.parse(options.body); return ok({ job_id: "E1", status: "SUCCEEDED", kind: "export", result: {} }); } return undefined; };
-  h.nodes.get("exportCsv").click(); await settle(); assert.equal(payload.parent_uid, "parent1");
   h.ui.state.taxonomy = "TDX"; h.ui.state.level = "880"; h.ui.updateParents();
   assert.equal(h.ui.state.parentUid, ""); assert.equal(h.nodes.get("parentFilter").hidden, true);
 });

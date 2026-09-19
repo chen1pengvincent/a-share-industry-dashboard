@@ -18,13 +18,17 @@ python3.14 -m venv .venv
 
 在 Chrome 打开 [http://127.0.0.1:8765](http://127.0.0.1:8765)。也可以双击根目录 `start_macos.command`；它只使用本项目环境，不自动装包或打开浏览器。服务运行时默认自动更新和回补可验证历史，退出终端后停止。只看已有数据时用 `serve --no-scheduler`。
 
-凭据读取 `TUSHARE_TOKEN` 环境变量或既有 Tushare 本机配置，网页不接收 Token。`doctor` 只报告是否配置，不联网验证有效性。源码未提交或不在 Git 提交中时，正式数据更新失败关闭；页面仍可读取已有批次。开发验收需要显式 `--development --data-dir .local/evidence/<独立目录>`，此模式关闭自动调度，结果标记为开发证据。
+凭据优先读取 `TUSHARE_TOKEN` 环境变量或既有 Tushare 本机配置；缺少时在终端隐藏输入，仅本次进程使用。直接回车可浏览已有数据并关闭本次自动更新；网页不接收 Token。`doctor` 只报告是否配置，不联网验证有效性。源码未提交或不在 Git 提交中时，正式数据更新失败关闭；页面仍可读取已有批次。开发验收需要显式 `--development --data-dir .local/evidence/<独立目录>`，此模式关闭自动调度，结果标记为开发证据。
 
 新工作台默认数据目录是 `~/Library/Application Support/ashare-industry`，与旧 `swivd` 完全分开。**首次更新不依赖旧 SW2014 档案。** 空目录首次取数后先显示最新交易日，应用持续运行时分批回补近五年可验证历史；这不意味着四分类都有完整五年历史。只有数据校验完成后才发布新批次，页面通过“切换新批次”统一更新。
 
+当前版本只在页面查看数据，已移除 Excel/CSV 下载。资金页与融合页显示同体系、同层级或系列的资金排名，搜索不会改变原排名。
+
 ## 文档与维护
 
-- [工作台安装使用手册](docs/handbook/工作台安装使用手册.md)：安装、凭据、更新、回补、导出、旧档案导入、迁移和排错。
+- [当前版本与已知限制](docs/CURRENT_STATUS.md)：本轮修复范围、历史数据缺口与验证边界。
+
+- [工作台安装使用手册](docs/handbook/工作台安装使用手册.md)：安装、凭据、更新、回补、旧档案导入、迁移和排错。
 - [已批准施工方案](docs/implementation/APPROVED_PLAN.md)：产品范围、数据语义与验收条件。
 - [模块接口](docs/implementation/INTERFACES.md)、[机器规格](PROJECT_INTEGRATION_SPEC.json)、[实施状态与验证入口](docs/IMPLEMENTATION_STATUS.md)。
 - [旧使用手册](docs/handbook/使用引导手册.md)与[旧工程交接文档](docs/handbook/工程交接文档.md)：只解释保留的 `swivd`、旧快照及便携包，不是新工作台的启动说明。旧 `run_dashboard.py` 和 `portable/` 仍保留，统一服务不会启动它们。

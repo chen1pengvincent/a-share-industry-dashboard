@@ -83,5 +83,17 @@
   "research_grade": "RESEARCH_ONLY",
   "decision_eligible": false,
   "production_approved": false,
-  "git_commits_authorized": false
+  "git_commits_authorized": false,
+  "amendments": [
+    {
+      "decision_id": "GOV-20260919-INDUSTRY-FIX-PUBLISH-007",
+      "scope": "Remove Excel/CSV downloads; preserve metric metadata and existing moneyflow rank; validate daily checkpoint identity. No financial calculation policy change."
+    }
+  ],
+  "capabilities": {
+    "csv_download": false,
+    "excel_download": false,
+    "moneyflow_rank_in_tables": true,
+    "history_preserves_metric_metadata": true
+  }
 }

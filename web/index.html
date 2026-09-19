@@ -21,7 +21,7 @@
       <div class="top-actions"><span id="batchDate" class="batch-date">暂无数据</span><button id="updateButton" class="primary">更新数据</button><button id="historyButton" class="quiet">历史补齐</button><a id="legacyLink" class="quiet" href="/legacy/">旧版档案</a></div>
     </header>
     <section id="newBatch" class="notice ready" aria-live="polite" hidden><span id="newBatchText"></span><button id="switchBatch" class="primary">统一切换</button></section>
-    <section id="jobPanel" class="notice job" aria-live="polite" hidden><div><strong id="jobTitle"></strong><span id="jobDetail"></span></div><progress id="jobProgress" max="100" value="0"></progress><button id="retryJob" class="quiet" hidden>重试读取进度</button><a id="downloadLink" class="primary" hidden>下载文件</a></section>
+    <section id="jobPanel" class="notice job" aria-live="polite" hidden><div><strong id="jobTitle"></strong><span id="jobDetail"></span></div><progress id="jobProgress" max="100" value="0"></progress><button id="retryJob" class="quiet" hidden>重试读取进度</button></section>
     <section id="errorPanel" class="notice error" role="alert" hidden><span id="errorText"></span><button id="retryData" class="quiet">重试读取</button></section>
     <section id="runtimeNotice" class="notice runtime" aria-live="polite" hidden></section>
     <main id="mainPanel" role="tabpanel" aria-labelledby="tab-fusion">
@@ -33,7 +33,7 @@
         <div class="period-control"><span class="field-label">观察周期</span><div id="periodTabs" class="segmented" aria-label="观察周期"><button data-period="day" aria-pressed="true">日</button><button data-period="week" aria-pressed="false">自然周</button><button data-period="month" aria-pressed="false">自然月</button></div></div>
         <label><span id="dateLabel">交易日</span><input id="periodDate" type="date" required></label>
         <label class="search">搜索行业<input id="search" type="search" placeholder="名称或代码" autocomplete="off"></label>
-        <div class="filter-actions"><button id="resetSort" class="quiet">恢复默认排序</button><button id="exportCsv" class="quiet" title="导出当前筛选、排序和页面口径">当前视图 CSV</button><button id="exportXlsx" class="quiet" title="导出同一批次、周期的四分类全部层级，含口径与审计">四分类 Excel</button></div>
+        <div class="filter-actions"><button id="resetSort" class="quiet">恢复默认排序</button></div>
       </section>
       <div class="context-line"><span id="periodSummary">尚无已验证批次</span><span id="rowCount"></span></div>
       <section id="emptyState" class="empty" hidden><span class="empty-icon" aria-hidden="true">▥</span><h2 id="emptyTitle">开始一次统一更新</h2><p id="emptyDescription">获取数据后，行业估值、行业资金流和融合观察会同时可用。</p><button id="emptyUpdate" class="primary">获取最近交易日</button></section>

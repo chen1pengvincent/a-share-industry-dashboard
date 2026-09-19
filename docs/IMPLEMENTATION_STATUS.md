@@ -1,3 +1,5 @@
+> 此文保留集成时的历史验收记录。当前版本已移除 Excel/CSV 下载，并修复排名、历史指标状态与检查点校验；现行范围、未解决问题及本轮验证见 [当前状态](CURRENT_STATUS.md)。下文旧导出验收不代表当前功能。
+
 # 实施与验收状态
 
 记录于2026-09-18，本地提交前验收快照。代码、真实数据和最终Chrome验收已完成；用户已批准本地提交及验收后正式启用。随后实际commit和正式首更记录在本机 `.local/evidence/formal-first-update-001/receipt.json`，运行状态以正式current/manifest和Stock项目登记为准。

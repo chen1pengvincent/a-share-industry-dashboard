@@ -91,6 +91,7 @@ def doctor(root: Path, *, development=False, source_root: Path = SOURCE_ROOT) ->
 
 def verify_batch(store, batch_id: str | None = None) -> dict:
     from .models import DataError, json_bytes
+    from .day_integrity import validate_day_refs
     manifest = store.manifest(batch_id) if batch_id else store.current()
     if manifest is None:
         return {"status": "EMPTY", "batch_id": None, "verified_objects": 0}
@@ -111,6 +112,10 @@ def verify_batch(store, batch_id: str | None = None) -> dict:
             raise DataError("SOURCE_SNAPSHOT_CONFLICT")
         inventories[sha] = files
     bind_source(manifest["source_snapshot"], source, source)
+    verified_day_sources = set()
+    for day, refs in manifest.get("days", {}).items():
+        validate_day_refs(store, day, refs, expected_result_source_sha256=source.get("tree_sha256"),
+                          verified_sources=verified_day_sources)
     def bind_embedded(value):
         if isinstance(value, dict):
             if {"identity", "inventory", "snapshot"} <= value.keys():

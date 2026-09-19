@@ -20,14 +20,14 @@ class RuntimeTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         self.pins = {"certifi": "2026.1.1", "tushare": "1.4.0", "tzdata": "2026.1",
-                     "XlsxWriter": "3.2.9", "openpyxl": "3.1.5", "et_xmlfile": "2.0.0", "pypinyin": "0.55.0"}
+                     "pypinyin": "0.55.0"}
         digest = "a" * 64
         (self.root / "requirements.lock").write_text(
             "--require-hashes\n--only-binary=:all:\n" + "\n".join(
                 f"{name}=={self.pins[name]} \\\n    --hash=sha256:{digest}" for name in ("certifi", "tushare", "tzdata")), encoding="utf-8")
         self.extension = "-r requirements.lock\n" + "\n".join(
             f"{name}=={self.pins[name]} --hash=sha256:{digest}"
-            for name in ("XlsxWriter", "openpyxl", "et_xmlfile", "pypinyin")) + "\n"
+            for name in ("pypinyin",)) + "\n"
         (self.root / "requirements-workbench.lock").write_text(self.extension, encoding="utf-8")
 
     @contextmanager
@@ -66,8 +66,9 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(identity["python"], {"implementation": "CPython", "version": "3.14.2", "supported": True})
         self.assertEqual(identity["platform"], {"system": "Darwin", "release": "25.0.0", "architecture": "arm64", "macos_version": "26.0"})
         self.assertTrue(identity["dependencies"]["locked"])
-        self.assertEqual(identity["dependencies"]["packages"]["XlsxWriter"],
-                         {"expected": "3.2.9", "actual": "3.2.9", "matched": True})
+        self.assertEqual(identity["dependencies"]["packages"]["pypinyin"],
+                         {"expected": "0.55.0", "actual": "0.55.0", "matched": True})
+        self.assertTrue({"XlsxWriter", "openpyxl", "et_xmlfile"}.isdisjoint(identity["dependencies"]["packages"]))
         self.assertTrue(status["dependency_lock_valid"] and status["dependencies_present"] and status["dependencies_locked"])
         self.assertEqual(before, self.inventory())
 
@@ -111,7 +112,7 @@ class RuntimeTests(unittest.TestCase):
             self.extension.replace("-r requirements.lock\n", ""),
             self.extension + "-r requirements.lock\n",
             self.extension.replace("a" * 64, "bad", 1),
-            self.extension + "ET-XMLFILE==2.0.0 --hash=sha256:" + "a" * 64 + "\n",
+            self.extension + "PyPinyin==0.55.0 --hash=sha256:" + "a" * 64 + "\n",
             "\n".join(line for line in self.extension.splitlines() if not line.startswith("pypinyin==")),
         )
         for text in variations:

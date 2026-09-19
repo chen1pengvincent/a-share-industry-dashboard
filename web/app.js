@@ -167,6 +167,7 @@
     link.type = "button"; link.addEventListener("click", () => openDetail(row)); box.append(link, el("small", row.code, "subtext")); return box;
   } };
   const metricColumn = (key, label) => ({ key, label: label || metricLabel(key), value: row => valueOf(row, key), render: row => metricCell(row, key) });
+  const flowRankColumn = { key: "flow_rank", label: "资金排名", title: "按同一分类、层级或系列的完整净流入排名；并列同名次，缺失不排名。搜索和父行业筛选保留原名次。", value: row => row.flow_rank, render: row => el("span", formatDecimal(row.flow_rank, 0)) };
   const countHints = {
     member_count: "截至期末、有证据的成员数；历史缺口时不代表行业实际成员总数",
     flow_expected: "期末已确认成员范围内应有的资金记录数；不是整个周期的日×股记录总数",
@@ -183,9 +184,9 @@
     box.title = [status, row.membership_evidence_kind].filter(Boolean).map(human).join(" · "); return box;
   } };
   function columnsForPage() {
-    if (state.page === "moneyflow") return [idColumn, metricColumn("flow_cent"), metricColumn("net_mf_vol"), countColumn("member_count", "已确认成员"), countColumn("flow_expected", "期末应有记录"), countColumn("flow_received", "期末已取记录"), statusColumn];
+    if (state.page === "moneyflow") return [idColumn, flowRankColumn, metricColumn("flow_cent"), metricColumn("net_mf_vol"), countColumn("member_count", "已确认成员"), countColumn("flow_expected", "期末应有记录"), countColumn("flow_received", "期末已取记录"), statusColumn];
     if (state.page === "valuation") return [idColumn, metricColumn("pe_ttm_median", "PE_TTM 中位数"), metricColumn("pe_percentile", "PE 历史百分位"), metricColumn("pb_median", "PB 中位数"), metricColumn("pb_percentile", "PB 历史百分位"), metricColumn("official_pe"), metricColumn("official_pe_percentile", "官方 PE 百分位"), metricColumn("official_pb"), metricColumn("official_pb_percentile", "官方 PB 百分位"), metricColumn("return_5d", "5D 收益"), metricColumn("return_mtd", "MTD 收益"), metricColumn("return_ytd", "YTD 收益"), countColumn("member_count", "已确认成员"), countColumn("pe_valid", "PE 有效数"), countColumn("pb_valid", "PB 有效数"), statusColumn];
-    return [idColumn, metricColumn("flow_cent"), metricColumn("pe_ttm_median", "PE_TTM 中位数"), metricColumn("pe_percentile", "PE 历史百分位"), metricColumn("pb_median", "PB 中位数"), metricColumn("pb_percentile", "PB 历史百分位"), metricColumn("official_pe"), metricColumn("official_pb"), countColumn("member_count", "已确认成员"), countColumn("pe_valid", "PE 有效数"), countColumn("pb_valid", "PB 有效数"), statusColumn];
+    return [idColumn, flowRankColumn, metricColumn("flow_cent"), metricColumn("pe_ttm_median", "PE_TTM 中位数"), metricColumn("pe_percentile", "PE 历史百分位"), metricColumn("pb_median", "PB 中位数"), metricColumn("pb_percentile", "PB 历史百分位"), metricColumn("official_pe"), metricColumn("official_pb"), countColumn("member_count", "已确认成员"), countColumn("pe_valid", "PE 有效数"), countColumn("pb_valid", "PB 有效数"), statusColumn];
   }
   function renderTable(container, rows, columns, sort, onSort, caption) {
     const scrollLeft = container.scrollLeft, scrollTop = container.scrollTop;
@@ -267,9 +268,17 @@
     await loadRows();
   }
   async function loadRows() {
-    if (!state.batchId || !state.level || !state.periodKey) return;
     const sequence = ++state.requestSequence, identity = queryIdentity(), batch = state.batchId;
-    hideError(); $("dataArea").classList.add("loading");
+    state.rows = []; state.period = null; state.memberRows = []; state.detailSequence++; state.qualitySequence++;
+    if ($("detailDialog").open) $("detailDialog").close();
+    $("qualityContent").replaceChildren(); $("qualitySummary").textContent = "查看每日覆盖与未知归属股票";
+    hideError(); $("dataArea").classList.remove("loading");
+    render();
+    if (!batch || !state.level || !state.periodKey) {
+      if (batch && !state.periodKey) showError(new Error("请选择有效的交易日或月份。"));
+      return;
+    }
+    $("dataArea").classList.add("loading");
     try {
       const response = await api("/api/v2/batches/" + encodeURIComponent(batch) + "/industries?" + makeQuery(state));
       if (sequence !== state.requestSequence || identity !== queryIdentity()) return;
@@ -298,8 +307,6 @@
     const p = state.period;
     $("periodSummary").textContent = p ? dates(p.start) + (p.end !== p.start ? " — " + dates(p.end) : "") + " · 估值日 " + dates(p.endpoint || p.as_of) + " · 已有 " + (Array.isArray(p.available_days) ? p.available_days.length : p.available_days ?? "—") + " / " + (Array.isArray(p.expected_days) ? p.expected_days.length : p.expected_days ?? "—") + " 交易日 · " + human(p.status) : state.batchId ? "所选期间尚无可展示数据" : "尚无已验证批次";
     renderTable($("industryTable"), rows, columnsForPage(), state.sort, sort => { state.sort = sort; render(); }, text[2]);
-    $("exportCsv").disabled = !state.batchId || !state.rows.length;
-    $("exportXlsx").disabled = !state.batchId || !state.rows.length;
     $("tablePanel").hidden = false;
     renderVisual(rows);
     if ($("qualityPanel").open) void loadQuality();
@@ -571,8 +578,8 @@
   }
   function jobRecord(response) { return response && response.job_id ? response : response && response.job || null; }
   function showJob(job) {
-    $("jobPanel").hidden = false; $("downloadLink").hidden = true; $("retryJob").hidden = true;
-    $("jobTitle").textContent = ({ update: "统一更新", backfill: "历史补齐", export: "导出数据", UPDATE: "统一更新", BACKFILL: "历史补齐", EXPORT: "导出数据" })[job.kind] || "数据作业";
+    $("jobPanel").hidden = false; $("retryJob").hidden = true;
+    $("jobTitle").textContent = ({ update: "统一更新", backfill: "历史补齐", UPDATE: "统一更新", BACKFILL: "历史补齐" })[job.kind] || "数据作业";
     const result = job.result || {};
     const hasTotal = Number.isFinite(job.total_units) && job.total_units > 0;
     const showFraction = job.status !== "SUCCEEDED" && hasTotal;
@@ -607,10 +614,6 @@
         detail.push(result.history_complete === true ? "交易日分片已齐；各分类指标仍可能缺少历史证据" : "历史仍未完整，可继续补齐待尝试日期");
       } else if (job.status === "FAILED") detail.push("作业已停止：" + human(job.error?.code));
       $("jobDetail").textContent = detail.filter(Boolean).join(" · ");
-    }
-    if (job.status === "SUCCEEDED" && job.result && job.result.download_url) {
-      const url = new URL(job.result.download_url, location.origin);
-      if (url.origin === location.origin && url.pathname.startsWith("/api/v2/")) { $("downloadLink").href = url.pathname + url.search; $("downloadLink").hidden = false; }
     }
     renderRuntime();
     return active;
@@ -694,7 +697,6 @@
     wire("backfillForm", "submit", event => { event.preventDefault(); if (state.historyScanError) { $("backfillError").textContent = historyUnavailableText(); return; } const start = $("backfillStart").value, end = $("backfillEnd").value; if (!start || !end || start > end) { $("backfillError").textContent = "请填写有效起止日期，开始日期不得晚于结束日期。"; return; } $("backfillError").textContent = ""; $("backfillDialog").close(); void submitJob("backfill", { start_date: start.replaceAll("-", ""), end_date: end.replaceAll("-", ""), retry_failed: $("backfillRetryFailed").checked === true }); });
     wire("closeDetail", "click", () => { state.detailSequence++; $("detailDialog").close(); });
     $("detailDialog").addEventListener("cancel", () => { state.detailSequence++; });
-    for (const [id, format] of [["exportCsv", "csv"], ["exportXlsx", "xlsx"]]) wire(id, "click", () => void submitJob("export", { batch_id: state.batchId, taxonomy: state.taxonomy, level_or_series: state.level, parent_uid: state.parentUid || null, period_kind: state.periodKind, period_key: state.periodKey, format, query: state.query, sort_key: state.sort.key, sort_direction: state.sort.direction, page: state.page, view: state.view, valuation_basis: state.source }));
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void checkCurrent().catch(() => {}); });
   }
   async function start() {
