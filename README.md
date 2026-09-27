@@ -1,5 +1,9 @@
 # A 股行业估值与资金流工作台
 
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+> 版权所有 © 2026 chen1pengvincent。本项目基于 [Apache License 2.0](LICENSE) 发布。
+
 一次启动，在同一网址查看行业估值、行业资金流和融合分析。三个页面共用 Tushare 数据、真实行业身份、历史归属和发布批次，覆盖申万、同花顺、通达信、中信。
 
 估值页保留总览、热力图、走势、涨跌排行、PE–PB 散点、明细及成分股入口。自然周、自然月使用期末交易日估值和期间净流入；无法证实的历史归属留空。官方 PE/PB 与成分股正值中位数分别展示，所有列表支持默认、升序、降序切换。
