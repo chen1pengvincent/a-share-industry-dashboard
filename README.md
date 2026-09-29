@@ -4,6 +4,8 @@
 
 > 版权所有 © 2026 chen1pengvincent。本项目基于 [Apache License 2.0](LICENSE) 发布。
 
+本仓库是一个本地 A 股四行业体系估值与资金流研究工作台：一次启动即在本机 HTTP 上提供行业估值、行业资金流和融合分析三个页面，数据来自自备的 Tushare 凭据。运行只需四步——`python3.14 -m venv .venv` 创建环境、按 `requirements-workbench.lock` 锁文件安装依赖、`run_workbench.py doctor` 自检、`run_workbench.py serve` 启动后访问本机地址。它是本地研究工具（`RESEARCH_ONLY`），不是投资建议或对外服务。
+
 一次启动，在同一网址查看行业估值、行业资金流和融合分析。三个页面共用 Tushare 数据、真实行业身份、历史归属和发布批次，覆盖申万、同花顺、通达信、中信。
 
 估值页保留总览、热力图、走势、涨跌排行、PE–PB 散点、明细及成分股入口。自然周、自然月使用期末交易日估值和期间净流入；无法证实的历史归属留空。官方 PE/PB 与成分股正值中位数分别展示，所有列表支持默认、升序、降序切换。
@@ -32,11 +34,25 @@ python3.14 -m venv .venv
 
 凭据优先读取 `TUSHARE_TOKEN` 环境变量或既有 Tushare 本机配置；缺少时在终端隐藏输入，仅本次进程使用。直接回车可浏览已有数据并关闭本次自动更新；网页不接收 Token。`doctor` 只报告是否配置，不联网验证有效性。源码未提交或不在 Git 提交中时，正式数据更新失败关闭；页面仍可读取已有批次。开发验收需要显式 `--development --data-dir .local/evidence/<独立目录>`，此模式关闭自动调度，结果标记为开发证据。
 
+### Windows
+
+根目录的 `start_windows.cmd` 可双击运行：存在 `.venv` 时复用，否则自动探测 Python 3.11–3.14 启动器。注意它启动的是旧 `run_dashboard.py`（`swivd` 旧版仪表盘），不是新工作台三页面。在 Windows 上运行新工作台，使用与上面相同的步骤，仅解释器路径换成 `.venv\Scripts\python`：
+
+```bat
+py -3.14 -m venv .venv
+.venv\Scripts\python -m pip install --require-hashes -r requirements-workbench.lock
+.venv\Scripts\python -m pip check
+.venv\Scripts\python -B run_workbench.py doctor
+.venv\Scripts\python -B run_workbench.py serve
+```
+
 新工作台默认数据目录是 `~/Library/Application Support/ashare-industry`，与旧 `swivd` 完全分开。**首次更新不依赖旧 SW2014 档案。** 空目录首次取数后先显示最新交易日，应用持续运行时分批回补近五年可验证历史；这不意味着四分类都有完整五年历史。只有数据校验完成后才发布新批次，页面通过“切换新批次”统一更新。
 
 当前版本只在页面查看数据，已移除 Excel/CSV 下载。资金页与融合页显示同体系、同层级或系列的资金排名，搜索不会改变原排名。
 
 ## 文档与维护
+
+新用户只需阅读《工作台安装使用手册》；旧手册与交接文档仅面向 `swivd` 旧版维护。
 
 - [当前版本与已知限制](docs/CURRENT_STATUS.md)：本轮修复范围、历史数据缺口与验证边界。
 
@@ -63,4 +79,4 @@ node tests_workbench/ui_behavior.cjs
 
 Node 仅用于前端行为测试。新套件通过不代表保留的旧核心/便携套件已全部通过，也不代表真实 Tushare 权限、数据完整性或 macOS 全链路已验收。旧套件有未随源码交付的封存档案依赖，详见实施状态。
 
-这是本地研究工具，`RESEARCH_ONLY`、`decision_eligible=false`、`production_approved=false`。没有可交付的新回测结论。当前源码与通过的离线测试不构成投资结论，也不代表已提交、已发布或可对外再分发；实时验收状态以带证据的实施记录为准。
+> 这是本地研究工具：`RESEARCH_ONLY`、`decision_eligible=false`、`production_approved=false`。当前源码与通过的离线测试不构成投资结论，也不代表可对外再分发；实时验收状态以带证据的实施记录为准。
